@@ -1,0 +1,59 @@
+body{
+margin: 0px;
+padding: 0px;
+font-size: 100%;
+text-align: justify;
+text-justify:inter-ideograph;
+font-family: Microsft YaHei;
+}
+/*index.html css*/
+.header legend{
+font-size: 2em;
+}
+.header :link{
+text-decoration: none;
+}
+.index ul{font-size: 1.5em;}
+/*preface.html*/
+.experience{
+font-style: oblique;
+color: purple;
+}
+.main{
+font-size: 1em;
+font-family: Microsoft YaHei;
+}
+p.standout{color: #990000;}
+#f4 ul{color: #990000;}
+#f4 a:link{
+text-decoration: none;
+color: #990000;
+}
+p.personal{
+color: #00cc00;
+}
+table{
+border-collapse: collapse;
+border: 2px solid black;
+}
+#t1 caption{
+text-align: left;
+}
+#t1 td, th{
+border: 1px solid gray;
+text-align: center;
+padding:5px;
+font-family: Georgia;
+}
+#t1 th{background-color: #cc99ff;}
+
+#t2 caption{
+text-align: left;
+}
+#t2 td, th{
+border: 1px solid gray;
+text-align: center;
+padding:5px;
+font-family: Georgia;
+}
+#t2 th{background-color: #cc99ff;}
