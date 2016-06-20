@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="description" content="Flask Web Development" />
+<meta name="keywords" content="Flask, Flask Web, Flask Web Development" />
+<!--<meta name="robots" content="noindex,nofollow" />-->
+<title>Preface</title>
+<link type="text/css" rel="stylesheet" href="../css/forscreen.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="" media="print" />
+<link rel="stylesheet" type="text/css" href="" media="handheld" />
+</head>
+<body>
+<h1>前言</h1>
+
+<fieldset id="f1">
+<legend>送给读者的建议</legend>
+<p class="experience"><a title="前言在我的观念中总会被忽视，因为总想直接进入到正文内容，直接学实际的技术这多好啊？可是，事实并不是这样。自从我走上了追求真理的道路后，我的看事观点有了一些变化，由于我对神所说的话的重视，导致了我有了一种不该忽视任何细节的一种想法。这种变化完全来自于吃喝了神话后我要成为敬畏神中的一员而产生出来的新生命。">前言这个词在中文里可能感受不到什么微妙之处，那么我们看看原文中preface这个词，pre与face的结合，pre有提前、预先的意思，face就是脸，如果你想认识一个人的时候，看见对方的脸是第一步，是不是？这样的阅读让我读出了一个体会，前言就是认识的一个开始。这让我想到了神说过的“借着眼看耳听留心观察”这是神对人的要求。那么我就不会忽视前沿的内容了，会老老实实地开始阅读，不跳跃，一步一步，脚踏实地地阅读，不再有一口吃个胖子的想法了。</a></p>
+</fieldset>
+
+<div class="main">
+<fieldset id="f2">
+<legend>开始正文的阅读</legend>
+<p>
+Flask从其它的框架种类中脱颖而出，因为开发者坐在了驾驶位并且完全主动的控制着他们的应用。也许你以前听过“对抗框架”这个词。当你决定要用非官方的一种方法来解决问题时，对抗框架这件事发生在大多数框架中。这种情况将发生在你要用一种不同的数据库引擎，或者一种不同验证用户的方法时。要摆脱框架的那种束缚，框架开发者将会给你很多头疼问题。
+</p>
+<p>
+Flask不像那样。你喜欢关系型数据库吗？很好。Flask完全支持它们。<br />
+也许你喜欢一个NoSQL数据库？根本没问题。Flask也会和它们一起工作。<br />
+想用你自己的数据库引擎吗？根部需要一个数据库？仍然很好。<br />
+使用Flask你能选择你的应用元件，或者甚至如果你想写你自己的，都没有问题！
+</p>
+<p>
+这个自由的关键所在就是Flask从开始到扩展中都遵循这样的设计理念。Flask诞生以来都带着一个强健的核心，那就是包含所有Web应用所需的基本功能和第三方扩展支持，Flask就是在这样的生态中产生和发展着，当然，这都看你了。
+</p>
+<p class="standout">
+在本书中我将呈现我用Flask开发Web应用的工作流。我没有主张只采用这样的方式来建立应用。你可以选择我的建议，但别把这个当成真理。
+</p>
+<p>
+大多数软件开发书籍提供很少和关注在代码举例上，那样是为了孤立地示范目标技术的不同特性，离开粘贴代码对于转换这些特性到一个完整的运行中的应用来说，让读者能搞清楚不糊涂是很有必要的。我选择了一个完全不同的方法。所有举例我都呈现出是一个单独应用的一部分，这样着手非常简单并且在后续章节中是可以扩展的。这个应用生命的开始是从几行代码开始，并且作为一个非常有特色的博客和社交网络应用结束。
+</p>
+</fieldset>
+
+<fieldset id="f3">
+<legend>谁适合这本书</legend>
+<p>
+你需要有一些Python编程经验水平。尽管本书假设你没有先前的Flask知识，Python概念例如package、module、function，decorator和object-oriented编程，假定容易理解。一些熟悉从一大堆痕迹中判断问题也很有帮助。
+</p>
+<p>
+当通过本书的实例来工作时，你将花费大量时间在命令行里。你会觉得在你的操作系统中使用命令行不舒服。
+</p>
+<p>
+现代Web应用无法避免使用HTML，CSS和JavaScript。本书实例的应用开发贯穿本书都会用到这些，但本书并不讨论这些技术的细节以及如何使用它们。没有精通客户端技术的帮助，你要想开发一个完整的应用，还是建议你熟悉这些技术到某种程度。
+</p>
+<p>
+我为这本书释放的参考应用作为开源项目放在了GitHub上。尽管GitHub可能提供下载这些应用的ZIP或者TAR文件，我强烈建议你安装一个Git客户端并且熟悉源代码版本控制，最后用基本的命令直接从容器去clone和检查不同版本的应用。你所需要的简短命令列表被显示在“How to Work with the Example Code” on page xiii。你也想用版本控制来为你自己的项目，那么使用这本书的一个借口是去学一下Git！
+</p>
+<p>
+最终，这本书不是一个完整详尽的Flask框架参考书。大多数特性被涵盖了，但你需要用<a href="http://flask.pocoo.org/">offical Flask documentation</a>与本书相辅相成。
+</p>
+</fieldset>
+
+<fieldset id="f4">
+<legend>本书是如何组织的</legend>
+<p>
+本书分为三部分：
+</p>
+<p>
+第一部分，介绍Flask，探索使用Flask框架基本的Web应用开发和一些Flask扩展：
+<ul>
+<li><a href="../part1/chapter1.html#">Chapter 1 描述了安装和设置Flask框架。</a></li>
+<li><a href="../part1/chapter2.html#">Chapter 2 用一个基本的应用直接潜入Flask。</a></li>
+<li><a href="../part1/chapter3.html#">Chapter 3 介绍在Flask应用中使用模板。</a></li>
+<li>Chapter 4 介绍Web表单。</li>
+<li>Chpater 5 介绍数据库。</li>
+<li>Chapter 6 介绍email支持。</li>
+<li>Chpater 7 呈现一个为一个中型和大型应用提供的应用结构。</li>
+</ul>
+第二部分，实例：一个社交博客应用，Flask风格的，我为本书开发的开源博客和社交网络应用：
+<ul>
+<li>Chapter 8 执行一个用户验证系统。</li>
+<li>Chapter 9 执行用户规则和许可。</li>
+<li>Chapter 10 执行用户简介页面。</li>
+<li>Chapter 11 建立博客接口。</li>
+<li>Chapter 12 执行关注。</li>
+<li>Chapter 13 为博客发帖执行用户评论。</li>
+<li>Chapter 14 执行一个应用程序接口（API）。</li>
+</ul>
+第三部分，最后一英里，描述一些重要任务，与应用代码没有直接关系的任务，这需要在发布一个应用之前需要确认的：
+<ul>
+<li>Chapter 15 在细节上描述不同单元测试策略。</li>
+<li>Chapter 16 给出一个实行分析技术的概况。</li>
+<li>Chapter 17 为Flask应用描述开发选项，传统形式和云基础两种。</li>
+<li>Chpater 18 列出附加的资源。</li>
+</ul>
+</p>
+</fieldset>
+
+<fieldset id="f5">
+<legend>如何与实例代码一起工作</legend>
+<p>
+本书中的实例代码可以从GitHub获得，<a href="http://github.com/miguelgrinberg/flasky" target="_blank">http://github.com/miguelgrinberg/flasky</a>
+</p>
+<p>
+在本书中在这个容器中建立匹配命令概念委托历史被小心的呈现出来。与代码工作建议的方式是从最老的版本开始检查委托，然后当你用本书制作程序时前进到委托列表。作为一个可选的，GitHub也将让你下载每一个委托的ZIP或者TAR文件。
+</p>
+<p>
+如果你决定用Git来与源代码一起工作，那么你需要安装Git客户端，你可以从<a href="http://git-scm.com" target=_blank>http://git-scm.com</a>下载。接下来的Git下载命令实例代码用：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ git clone https://github.com/miguelgrinberg/flasky.git
+</textarea>
+</p>
+<p>
+git clone命令从GitHub安装源代码到一个当前路径下建立的flasky文件夹里。这个文件夹不包含源代码；一个带有整个应用变化的历史Git容器副本包含在内。
+</p>
+<p>
+在第一章中你将被询问检查应用释放的初始化，然后，在正当的位置你将被指导进行下一步在历史中。Git让你移到历史变化的命令是git checkout。这有一个实例：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ git checkout 1a
+</textarea>
+</p>
+<p>
+1a在命令里是一个标签，一个项目历史中点的名字。这个容器是根据本书章节被标记的，那么1a标签被用第一章在实例中设置应用文件的初始化版本。大部分章节有多于一个标签的关系，那么举例说明，标签5a，5b等等是在第五章呈现出来的增加的版本。
+</p>
+<p>
+除了为一个应用的版本检查源文件以外，你需要执行一些安装。举例，在某种情况下你将需要安装传统的Python packages或者实施数据库升级。当这些需要的时候你会被告知的。
+</p>
+<p>
+你通常不需要修改应用的源文件，但如果你这样做了，那么Git将不让你检查一个不同的修改版，作为那个原因你本地修改会丢失。在你检查一个不同的修改版之前，你需要恢复文件到它们的原始状态。用git reset命令是最容易做到这一点：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ git reset --hard
+</textarea>
+</p>
+<p>
+这个命令将摧毁你的本地修改，在你用这个命令以前，那么你应该保存任何你不想丢失的修改。
+</p>
+<p>
+不时地，你想从GitHub中的一个提醒你本地容器，哪里的bug修复和哪里的bug改善已经被应用了。以下命令能达到这个提醒的目的：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ git fetch --all
+$ git fetch --tags
+$ git reset --hard origin/master
+</textarea>
+</p>
+<p>
+git fetch命令被用来升级委托历史和标签，从远程的GitHub上到你本地容器里，但这些效果不会影响实际的源文件，只有用git reset命令升级才会影响到源文件。重申一次，要意识到任何时候使用git reset你将失去任何你已经做过的本地修改。
+</p>
+<p>
+另外一个很有用的操作是查看两个应用版本之间的所有不同之处。对于细节中理解一个修改这将非常有用。从命令行，git diff命令就可以做到这一点。举例，查看修改版2a和2b之间的不同，使用：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ git diff 2a 2b
+</textarea>
+</p>
+<p>
+这些差异作为一个片段被显示出来，如果你没有与片段文件一起工作过，这个片段不是非常直观的形式达到查看变化。你也许发现被GitHub显示出来的图形比较更容易阅读。举例，2a和2b之间的不同在GitHub上这样显示着：<br />
+<a href="https://github.com/miguelgrinberg/flasky/compare/2a...2b" target=_blank>https://github.com/miguelgrinberg/flasky/compare/2a...2b</a>
+</p>
+</fieldset>
+
+<fieldset id="f6">
+<legend>使用代码实例</legend>
+<p>
+本书在这里帮助你得到完成你的工作。通常来说，本书提供一个实例代码，你可以在你的程序和文档中使用它。你不需要为了获得许可而联系我们，除非你重做了代码的重要部分。例如，写一个程序中用了大量本书中的代码是不需要许可的。销售或者分发一张实例CD-ROM需要O'Reilly出版商许可。通过引用本书和引用实例代码回答一个问题不需要许可。合并本书中一个重要的大量实例代码到你自己的产品文件中是不需要许可的。
+</p>
+<p>
+我们非常感激，但不要求，归属。一个归属经常包含标题、作者、出版商以及ISBN。实例：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+"Flask Web Development by Miguel Grinberg(O'Reilly).Copyright 2014 Miguel Grinberg,978-1-449-3726-2."
+</textarea>
+</p>
+<p>
+如果你觉得你使用的代码实例失去了公平使用或者上面提到的许可，自觉联系我们<br />
+permissions@oreilly.com
+</p>
+</fieldset>
+
+<fieldset id="f7">
+<legend>本书中的惯例用法</legend>
+<p>
+接下来印刷上的惯例被用在本书中：
+</p>
+<p>
+斜体字<br />
+被用在新术语，URL，email，文件名和文件扩展名。
+</p>
+<p>
+固定宽度<br />
+用在程序列表，同样用在段落里指向程序元素，例如变量或者函数名，数据库，数据类型，环境变量，表达式和关键字。
+</p>
+<p>
+固定宽度粗体<br />
+显示用户逐字输入的命令或者其它文本。
+</p>
+<p>
+固定宽度斜体<br />
+显示用户提供的变量将被替换的文本或者被内容确定的变量。
+</p>
+<p>
+当出现以下三张图片时，图片所在的内容对我们来说意味着：
+<li><img src="../imgs/tip.png" alt="a tip or suggestion" />这张图片指的是一个建议</li>
+<li><img src="../imgs/note.png" alt="a general note" />这张图片指的是一个普遍存在的注意事项</li>
+<li><img src="../imgs/warning.png" alt="a warning or caution" />这张图片指的是一个警告</li>
+</p>
+</fieldset>
+</div>
+
+</body>
+</html>
