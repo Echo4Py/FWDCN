@@ -1,0 +1,578 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="description" content="Flask Web Development" />
+<meta name="keywords" content="Flask, Flask Web, Flask Web Development" />
+<!--<meta name="robots" content="noindex,nofollow" />-->
+<title>Chapter2</title>
+<link type="text/css" rel="stylesheet" href="../css/forscreen.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="" media="print" />
+<link rel="stylesheet" type="text/css" href="" media="handheld" />
+</head>
+<body>
+<h1>基本应用结构</h1>
+<p>
+在本章中，你将学习关于一个Flask应用不同的部分。你也会写你的第一个Flask Web应用并且运行它。
+</p>
+<fieldset id="f11">
+<legend>初始化</legend>
+<p>
+所有Flask应用必须建立一个应用场合。Web服务器为把所有从客户端收到的请求传递到这个目标的操作，使用了一个叫做Web Server Gateway Interface(WSGI)的协议。应用例子是一个Flask类的目标，经常作为下面这样被建立：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask import Flask
+app = Flask(__name__)
+</textarea>
+</p>
+<p>
+唯一需要讨论的Flask类构造是主模块的名字或者应用包。对于大多数应用，Python的__name__变量是正确的值。
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />name自变量是被传递到Flask应用结构里的，这个自变量在新的Flask开发者中间是一个不确定状态的来源。Flask使用这个自变量来达到确定应用的根路径，以便在后面能找到与应用位置有关的资源文件。
+</p>
+<p>
+后面你将看到更多复杂的应用初始化的实例，但对于简单应用这是所有必须要有的。
+</p>
+</fieldset>
+<fieldset id="f12">
+<legend>路线和方法函数</legend>
+<p>
+客户端例如web浏览器发送请求到web服务器，依次发送请求到Flask应用场合。这个应用场合需要知道哪些代码需要为每一个URL请求运行，所以保持一个URL的映象到Python函数。在一个URL和函数之间的结合，这样结合的操作被叫做一个route。
+</p>
+<p>
+大多数在一个Flask应用中方便的方式去定义一个route，是通过app.route装饰器出现在应用场合里，这个注册布置了函数并作为一个route。接下来的例子展示了一个route是如何用作这个布置被声明的：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+@app.route('/')
+def index():
+    return '<h1>Hello World!</h1>'
+</textarea>
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />布置是Python语言的一个标准的特征；布置能以不同的方法来描述一个函数的行为。一个常用模式是使用装饰器来为一个事件处理注册函数功能。
+</p>
+<p class="personal">
+instance->我发现instance这个词在我学习Flask的时候，比较准确的理解翻译为场合。在以往听过别人讲课或者其它中文翻译版本中，经常会把instance翻译成实例，在我的体会当中这样翻译无法让人能准确的明白到底是什么意思，因为instance是Flask写法中或者其它类似的语言写法中的一种规定，但并不是实际功能的代码，所以实例的说法有些牵强。但因着Flask程序中必须先写出这样的一个场合，在后续的实际代码中会被调用到这个应用场合中去执行。这么说，如果在Flask中不提前写出这样的instance的话，这里面有这样的一个隐含的意思，就是下面的实际代码就找不到该在哪里执行的意思。就像，你是一个工作人员，你的工作场合在哪里？如果你不知道，你就无法工作了。实际工作的是你这个人，并不是你工作的场合。<br />
+decorator->另外一个常常出现的一个单词decorator，有的翻译成装饰器，很难理解，但decorate除了装饰的意思还有一个是布置的意思，这样就更容易理解所谓装饰器的含义了。<br />
+route->route是路线的意思，经常被人翻译成路由这个术语，但是到底起到什么作用，当我寻求这个单词的意思时，在众多解释中，路线这个解释更能让我理解其中的作用。从这里可以看出，专业术语很容易让人对如何正确立即、或者真正的明白其含义是没有什么帮助的。
+handler->有的人叫做握手，但查询其意思的时候发现是处理的意思，那么叫做处理器更加合适。所以很多时候不求真实际上就把事实给歪曲了。
+</p>
+<p>
+前面的举例注册了函数index()，作为应用的根URL处理器。如果这个应用被部署在一个服务器上与www.example.com域名相结合，那么在你的浏览器上将导航到http://www.example.com，浏览器触发index()函数到服务器上运行。这个函数返回的值，被叫做响应，这个响应就是客户端收到的内容。如果客户端是一个Web浏览器，这个响应就是被显示给用户的文档了。
+</p>
+<p>
+像index()这样的函数被叫做方法函数。一个响应被一个方法函数返回后是一个简单的包含HTML内容的字符串，但这个字符串也能是更复杂的表单，后面你会看到。
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />答案字符串镶嵌在Python代码里，导致代码很难被维护，我们在这里这样做只是为了介绍response的概念。你将在<a href="chapter3.html#">第三章</a>学习真正产生答案的方法。
+</p>
+<p>
+如果你注意到一些你每天使用的URL是表单服务，你将注意到会有很多部分。例如，你的Facebook简介页面是http://www.facebook.com/&lt;your-name&gt;，那么你的用户名是URL的一部分。Flask支持这些URL类型在route decorator使用一个特殊语句。接下来的例子定义了一个route，这个route有一个动态name成分：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+@app.route('/user/<name>')
+def user(name):
+    return '<h1>Hello, %s!</h1>' % name
+</textarea>
+</p>
+<p>
+这个附带的部分，在三角括号里的就是动态成分，所以任何URL匹配静态部分将被映射到这个route。当方法函数被调用的时候，Flask发送动态成分作为一个自变量。在前面的方法函数例子中，这个自变量习惯用于产生一个标出名字的问候作为一个答案。
+</p>
+<p>
+在route里的动态部分默认为字符串，但也能被定义成一个类型。例如，route /user/&lt;int:id&gt;将只匹配在动态id部分中有一个整数的URL。Flask为route所支持的类型有int，float和path。path类型也是一个字符串，Flask不认为斜线/是一个分隔符，反而认为是动态成分的组成部分。
+</p>
+</fieldset>
+<fieldset id="f13">
+<legend>服务启动</legend>
+<p>
+应用场合有一个运行方式，那就是运载Flask的整合开发Web服务器：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+if __name__ == '__main__':
+    app.run(debug=True)
+</textarea>
+</p>
+<p>
+__name__ == '__main__'是Python成语，它被用在这里是为了保证开发Web服务器只在脚本被直接执行的时候被启动。当这个脚本被另外一个脚本import的时候，这个脚本假装父脚本将运载一个不同服务器，所以app.run()呼叫被跳过了。
+</p>
+<p>
+一旦服务器运行了，这个脚本就会进入循环状态，等候着需求和提供服务。这个循环延续到应用被停止，例如通过敲入Ctrl-C。
+</p>
+<p>
+这里有一些可选的自变量提供给app.run()来配置Web服务器运行的模式。在开发期间，这是一个方便的debug模式，在其它事物中间可以进行调试和重新装载。通过传递设置为True的自变量debug就可以实现。
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />Web服务器是通过Flask提供的，没有打算为生产使用。你将在<a href="../part3/chapter17.html#">第十七章</a>里学习关于生产Web服务器。
+</p>
+</fieldset>
+<fieldset id="f14">
+<legend>一个完整的应用</legend>
+<p>
+在前面的部分中，你已经学习了有关一个Flask Web应用的不同部分，那么现在是时候写一个了。一个完整的hellp.py应用脚本不会超过前面描述过的3部分，把它们结合起来到一个单独的文件中。应用被展示在例子2-1里。
+</p>
+<p>
+例子2-1 hello.py：一个完整的Flask应用<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return '<h1>Hello World!</h1>'
+
+if __name__ == '__main__':
+    app.run(debug=True)
+</textarea>
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经克隆过GitHub上Git容器的应用，你能现在运行git checkout 2a来检查我们这个版本的应用。
+</p>
+<p class="personal">
+上次我在1a版本中更改了hello.py，在检查2a版本时，出现了错误提示，大概意思是在你校验2a版本之前把你hello.py文件所作的更改commit或者保存。这时我想起在前言里讲到的恢复文件原始状态git reset --hard命令。于是执行了这个恢复命令在checkout 2a就成功了。
+</p>
+<p>
+运行应用，确认前面建立的虚拟环境被激活了，并且已经安装了Flask。现在打开你的浏览器然后在地址栏输入http://127.0.0.1:500。你就可以看到Web浏览器连接到应用后的效果。那么运载应用用以下命令：
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ python hello.py
+* Running on http://127.0.0.1:5000/
+* Restarting with reloader
+</textarea>
+</p>
+<p class="personal">
+我执行了运行应用程序的命令后，效果如下：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) D:\flasky>python hello.py
+ * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger pin code: 111-347-840
+</textarea>
+</p>
+<p>
+如果你输入任何其它URL，应用将不知道如何处理并且将返回一个错误代码404给浏览器，这个熟悉的错误在你浏览一个不存在的网页时得到。
+</p>
+<p>
+在示例2-2中的应用提高版本展示中增加了第二条动态route。当你访问这个URL时，呈现给你一个个人问候。
+</p>
+<p>
+示例2-2，hello.py：带有一个动态route的Flask应用<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return '<h1>Hello World!</h1>'
+    
+@app.route('/user/<name>')
+def user(name):
+    return '<h1>Hello, {:s}!</h1>'.format(name)
+    
+if __name__ == '__main__':
+    app.run(debug=True)
+</textarea> 
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你复制了在GitHub上的应用的Git容器，你可以现在运行git checkout 2b来检查这个应用的版本。我这里改写了一下字符串格式版本为Python3用的代码。
+</p>
+<p>
+来测试动态route，确认服务器正在运行并且导航到http://localhost:5000/user/Dave。应用将反馈回一个自定义式的问候，产生使用name动态的自变量。试一下不同的名字来看看方法函数如何总是产生基于给出的名字的一个答案。
+</p>
+</fieldset>
+<fieldset id="f15">
+<legend>请求响应循环</legend>
+<p>
+现在你已经和一个基本的Flask应用在玩了，你也许希望知道更多关于Flask如何工作的。接下来的部分描述了一些框架设计方面的内容。
+</p>
+</fieldset>
+<fieldset id="f16">
+<legend>应用和响应环境</legend>
+<p>
+当Flask接到一个从客户端来的请求时，Flask需要建立一些对象作用到方法函数，这个方法函数处理这个请求。一个好的示例是请求对象，这个请求对象里有被客户端发送的HTTP请求。
+</p>
+<p>
+显而易见的方式那是在Flask能给出一个方法函数进入到请求对象，这个请求对象作为一个自变量发送，但那完全需要应用里的一个方法函数有一个额外的自变量。事情变得更复杂了，如果你认为请求对象不只是对象，那方法函数也许需要进入执行一个请求。
+</p>
+<p>
+为了避免混淆带有可有可无的很多自变量的方法函数，Flask使用context环境暂时建立某个全局可以进入的对象。谢谢环境，方法函数可以写成像下面这样的一个：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask import request
+
+@app.route('/')
+def index():
+    user_agent = request.headers.get('User-Agent')
+    return '<p>Your browser is {:s}</p>'.format(user_agent)
+</textarea>
+</p>
+<p>
+注意在这个方法函数里请求被用作如果请求是一个全局变量。在现实里，请求不能是一个全局变量如果你意识到在一个多线程服务器中线程是在同一个时间工作在从不同客户端发送来的不同请求，那么每个线程需要在请求中看到一个不同的对象。context环境能让Flask用其它线程建立某个全局可进入的变量没有妨碍地到达一个线程。
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />一个线程是最小的指令顺序，线程能被单独的管理。线程是常见的为一个进程提供很多活跃的线程，有时共享资源例如内存或者文件执行。多线程Web服务器开启一个线程池并且从池子里选择一个线程来执行每一个进来的请求。
+</p>
+<p>
+在Flask里有2个环境：应用环境和请求环境。Table2-1展示了变量被这些环境中的每一个曝光出来。<br />
+<table id="t1">
+  <caption>Table2-1. Flask context globals</caption>
+  <tr>
+    <th>Variable name</th>
+    <th>Context</th>
+    <th>Description</th>
+    
+  </tr>
+  
+  <tr>
+    <td>current_app</td>
+    <td>Application context</td>
+    <td>The application instance for the active application.</td>
+  </tr>
+  
+  <tr>
+    <td>g</td>
+    <td>Application context</td>
+    <td>An object that the application can use for temporary storage during the handling of a request. This variable is reset with each request.</td>
+  </tr>
+  
+  <tr>
+    <td>request</td>
+    <td>Request context</td>
+    <td>The request object, which encapsulates the contents of a HTTP request sent by the client.</td>
+  </tr>
+  
+  <tr>
+    <td>session</td>
+    <td>Request context</td>
+    <td>The user session, a dictionary that the application can use to store values that are "remembered" between requests.</td>
+  </tr>
+</table>
+</p>
+<p>
+Flask在派遣一个请求之前激活（或者催促）应用和请求环境，然后当请求被执行后移除请求。当应用环境被催促后，current_app和g变量变成可加入到线程；同样地，当请求环境被催促后，request和session一样变成可加入到线程。如果任何这些变量在没有一个激活应用或者请求环境下被执行，会产生一个错误。这4个环境变量将重新被访问，如果你无法理解它们为什么这么有用，所以别着急在后面章节中有细节说明。
+</p>
+<p>
+接下来的Python shell部分证明应用环境是如何工作的：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+>>> from hello import app
+>>> from flask import current_app
+>>> current_app.name
+Traceback (most recent call last):
+...
+RuntimeError: working outside of application context
+>>> app_ctx = app.app_context()
+>>> app_ctx.push()
+>>> current_app.name
+'hello'
+>>> app_ctx.pop()
+</textarea>
+</p>
+<p>
+在这个示例里，当这里没有应用环境激活时current_app.name失败了，一旦一个环境被push后就变成非法的了。注意在应用场合通过引用app.app_context()时一个应用环境是如何被获得地。
+</p>
+</fieldset>
+<fieldset id="f17">
+<legend>请求派遣</legend>
+<p>
+当应用接收到一个从客户端发来的请求时，应用需要找到什么样的方法函数来调用请求并服务这个请求。对于这个任务，Flask在应用的URLmap里查找在请求里给出的URL，map里含有一张URL地图指示到方法函数，方法函数执行那些URL。Flask使用app.route装饰器或者没有装饰器版本的等效app.add_url_rule()建立这张地图。<br />
+选择题：<br />
+等同于@app.route('/')的无装饰器代码是什么？<br />
+<input type="radio" name="equivalent" value="app.add_url_rule()" />app.add_url_rule()
+</p>
+<p>
+来看看URL地图在Flask应用中看起来是什么样子，在Python shell里你能视察这张为hello.py建立的地图，确认你的虚拟环境被激活了：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) D:\flasky>python
+Python 3.4.4 (v3.4.4:737efcadf5a6, Dec 20 2015, 19:28:18) [MSC v.1600 32 bit (Intel)] on win32
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from hello import app
+>>> app.url_map
+Map([<Rule '/' (OPTIONS, GET, HEAD) -> index>,
+ <Rule '/static/<filename>' (OPTIONS, GET, HEAD) -> static>,
+ <Rule '/user/<name>' (OPTIONS, GET, HEAD) -> user>])
+>>>
+</textarea>
+</p>
+<p>
+/和/user/&lt;name>&gt;路线被app.route装饰器在应用里定义了。/static/&lt;filename&gt;路线是一个特殊路线被Flask增加给静态文件的入口。你将在<a href="chapter3.html#">第三章</a>学习更多关于静态文件。
+</p>
+<p>
+HEAD，OPTIONS，GET元素在URL地图中显示出来，这些元素是请求方法，请求方法被route处理。Flask附上方法到每个route，那么不同请求方法发送到相同的URL后能被不同的方法函数来处理。HEAD和OPTIONS方法是被Flask自动管理着的，那么在实际中Flask被告知在这个应用里在URL地图中3个route使用了GET方法。在<a href="chapter4.html#">第四章</a>你将学习有关为route描述不同的请求方法。
+</p>
+</fieldset>
+<fieldset id="f18">
+<legend>请求钩</legend>
+<p>
+有时在请求被处理之前或之后对于执行代码是有用的。例如，在每个请求开始的时候，也许需要建立一个数据库连接，或者验证用户提出请求。在每个方法函数中代替复制代码就是这样做的，在一个请求被发送到一个方法函数之前或之后，Flask给你选项来注册被调用的常用函数。
+</p>
+<p>
+请求钩子是作为装饰用的工具。这里有4种钩子被Flask支持：
+<ul>
+<li>befor_first_request：在第一个请求被处理之前注册一个函数来运行。</li>
+<li>before_request：在每个请求之前注册一个函数来运行。</li>
+<li>after_request：如果没发生未处理的异常，在每个请求之后注册一个函数来运行。</li>
+<li>teardown_request：在每个请求之后注册一个函数来运行，即使发生未处理的异常。</li>
+</ul>
+</p>
+<p>
+一个常见的模式在请求钩子函数和方法函数之间分享数据是使用g全局环境。例如，一个before_request处理器能加载登录用户从数据库和存储这个登录用户到g.user。然后，当方法函数被调用时，请求能从g.user存取用户。
+</p>
+<p>
+如果你还是没有弄明白，别着急，请求钩子示例将被展示在将来的章节中。
+</p>
+</fieldset>
+<fieldset id="f19">
+<legend>响应</legend>
+<p>
+当Flask调用一个方法函数时，Flask希望方法函数返回值作为响应。在大多数案例中，响应是一个简单的字符串，这个字符串作为一个HTML页面被送回客户端。
+</p>
+<p>
+但HTTP协议需要不止一个字符串作为一个请求的响应。一个很重要的HTTP响应部分是状态代码，这个代码被默认设置成200，这个代码显示请求被成功地实现了。
+</p>
+<p>
+当一个方法函数需要用一个不同的状态代码做出响应时，方法函数能在响应文本后增加数值代码作为一个第二个返回值。例如，接下来的方法函数返回一个400状态代码，这个代码是一个坏的请求错误：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+@app.route('/')
+def index():
+    return '<h1>Bad Request</h1>', 400
+</textarea>
+</p>
+<p>
+响应通过方法函数返回，响应也可以带有一个蛋三个自变量，一个header字典，这个字典被加到HTTP响应中。这是很少需要的，但在<a href="../part2/chapter14.html#">第14章</a>你将看到一个例子。
+</p>
+<p>
+代替返回的1个，2个或者3个值被视为一个元组，Flask方法函数有返回一个响应对象的选项。make_response()函数带有1个，2个或者3个自变量，同样的值能从一个方法函数被返回，并且返回一个响应对象。有时候在方法函数里执行这个换算是有用的，然后使用响应对象的方法进一步配置响应。接下来的例子建立了一个响应对象，然后在响应里设置一个cookie：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask import make_response
+
+@app.route('/')
+def index():
+    response = make_response('<h1>This document carries a cookie!</h1>')
+    response.set_cookie('answer', '42')
+    return response
+</textarea>
+</p>
+<p>
+这是一个特殊响应类型被叫做重定向。这个响应不包括一个页面文档；响应只是给浏览器一个新的URL，从这个新的URL位置加载一个新的页面。重定向是经常在Web表单中被用到，在<a href="chapter4.html#">第四章</a>里你将学习到。
+</p>
+<p>
+一个重定向是典型的暗示，暗示着一个302响应状态代码并且URL重定向到一个提交的本地header里。一个重定向响应的产生是使用一个3个值返回达到的，或者也带有一个响应对象，但提交的本地header使用的最频繁，Flask提供一个redirect()帮助函数，这个函数建立这种响应：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask import redirect
+
+@app.route('/')
+def index():
+    return redirect('192.168.1.8')
+</textarea>
+</p>
+<p>
+另外一个特殊响应是带有abort函数的发表，这个函数为了错误处理而被使用。接下来的例子如果URL中的id动态变量不是一个合法用户，返回状态代码404：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask import abort
+
+@app.route('/user/<id>')
+def get_user(id):
+    user = load_user(id)
+    if not user:
+        abort(404)
+    return '<h1>Hello, {:s}</h1>'.format(user.name)
+</textarea>
+</p>
+<p>
+注意那个abort没有返回控制给使用abort的函数get_user()，但把控制给了web服务器通过升起的例外。
+</p>
+</fieldset>
+<fieldset id="f20">
+<legend>Flask扩展</legend>
+<p>
+Flask被设计成是可扩展的。这样设计的目的是避开重要功能区域，例如数据库和用户鉴定，给你自由选择最适合你应用的package空间，或者如果你很渴望写你自己的package。
+</p>
+<p>
+这有一个大量多样的扩展，通过社区提供了很多因着不同目的而建立的扩展，并且如果不够用，任何标准Python的package或者library也能被使用的很好。给你一个意见，一个扩展是如何合并到一个应用中的，接下来的部分增加一个扩展到hello.py，通过命令行变量来增强应用。
+</p>
+</fieldset>
+<fieldset id="f21">
+<legend>使用Flask-Script的命令行选项</legend>
+<p>
+Flask的开发Web服务器支持一个开始配置选项的数字，但唯一指定它们的方法是在脚本里把它们作为自变量传递它们到app.run()。这不是很方便；理想的方式是通过命令行变量传递配置选项。
+</p>
+<p>
+Flask-Script是为Flask提供的一个扩展，Flask-Script增加一个命令行语法到你的Flask应用。Flask-Script是一个package并带有一套常用目的的选项，并且也支持自定义命令。
+</p>
+<p>
+这个扩展使用pip来安装：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ pip install flask-script
+</textarea>
+</p>
+<p class="personal">
+我使用Git cmd来执行上面的安装命令后，所看到的信息如下：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) D:\flasky>pip install flask-script
+Collecting flask-script
+  Downloading Flask-Script-2.0.5.tar.gz (42kB)
+    100% |████████████████████████████████| 51kB 234kB/s
+Requirement already satisfied (use --upgrade to upgrade): Flask in d:\flasky\ven
+v\lib\site-packages (from flask-script)
+Requirement already satisfied (use --upgrade to upgrade): Jinja2>=2.4 in d:\flas
+ky\venv\lib\site-packages (from Flask->flask-script)
+Requirement already satisfied (use --upgrade to upgrade): Werkzeug>=0.7 in d:\fl
+asky\venv\lib\site-packages (from Flask->flask-script)
+Requirement already satisfied (use --upgrade to upgrade): itsdangerous>=0.21 in
+d:\flasky\venv\lib\site-packages (from Flask->flask-script)
+Requirement already satisfied (use --upgrade to upgrade): MarkupSafe in d:\flask
+y\venv\lib\site-packages (from Jinja2>=2.4->Flask->flask-script)
+Building wheels for collected packages: flask-script
+  Running setup.py bdist_wheel for flask-script ... done
+  Stored in directory: C:\Documents and Settings\Administrator\Local Settings\Ap
+plication Data\pip\Cache\wheels\e2\ea\d8\8d114e46cef819f7d9879504a7f9cb2a88a479a
+f2858223d9f
+Successfully built flask-script
+Installing collected packages: flask-script
+Successfully installed flask-script-2.0.5
+
+(venv) D:\flasky>
+</textarea>
+</p>
+<p>
+示例2-3显示这些变化需要增加命令行语法到hello.py应用。
+</p>
+<p>
+示例2-3 hello.py：使用Flask-Script<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.script import Manager
+manager = Manager(app)
+
+# ...
+
+if __name__ == '__main__':
+    manager.run()
+</textarea>
+</p>
+<p>
+为Flask专门开发的扩展曝光在flask.ext名字空间下面。Flask-Script输出一个名叫Manager的类，这个类从flask.ext.script被导入。
+</p>
+<p>
+这个扩展的初始化方法是很多扩展共用的方法：一个主类的场所被初始化，是通过把应用场所当作一个自变量传递到构造函数。被建立的对象接下来很适合的被使用为每个扩展。在这个案例中，服务器开动是通过manager.run()来启动的，所处的命令行具备了语法功能。
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" /><br />
+如果你已经克隆了GitHub上Git容器中的应用，你可以运行git checkout 2c来检查这个应用版本。
+</p>
+<p>
+这些变化，应用获得了一套基本的命令行选项。现在运行hello.py显示一个使用信息：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ python hello.py
+usage: hello.py [-h] {shell,runserver}...
+
+positional arguments:
+  {shell,runserver}
+    shell			Runs a Python shell inside Flask application context.
+    runserver		Runs the Flask development server i.e. app.run()
+    
+optional arguments:
+  -h, --help		show this help message and exit
+</textarea>
+</p>
+<p class="personal">
+我运行python hello.py后，显示信息如下：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) D:\flasky>python hello.py
+usage: hello.py [-?] {shell,runserver} ...
+
+positional arguments:
+  {shell,runserver}
+    shell            Runs a Python shell inside Flask application context.
+    runserver        Runs the Flask development server i.e. app.run()
+
+optional arguments:
+  -?, --help         show this help message and exit
+
+(venv) D:\flasky>
+</textarea>
+</p>
+<p>
+shell命令被用来在应用环境中开启一个Python shell会话。你能用这个会话来运行维护任务或者测试，或者调试问题。
+</p>
+<p>
+runserver命令，顾名思义，开启web服务器。运行python hello.py runserver开启web服务器调试模式，但这里有更多可用的选项：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ python hello.py runserver --help
+usage: hello.py runserver [-h] [-t HOST] [-p PORT] [--threaded]
+							[--processes PROCESSES] [--passthrough-errors] [-d]
+							[-r]
+
+Runs the Flask development server i.e. app.run()
+
+optional arguments:
+  -h, --help			show this help message and exit
+  -t HOST, --host HOST
+  -p PORT, --prot PROT
+  --threaded
+  --processes PROCESSES
+  --passthrough-errors
+  -d, --no-debug
+  -r, --no-reload
+</textarea>
+</p>
+<p class="personal">
+我运行了python hello.py runserver --help命令后信息显示如下：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) D:\flasky>python hello.py runserver --help
+usage: hello.py runserver [-?] [-h HOST] [-p PORT] [--threaded]
+                          [--processes PROCESSES] [--passthrough-errors] [-d]
+                          [-D] [-r] [-R]
+
+Runs the Flask development server i.e. app.run()
+
+optional arguments:
+  -?, --help            show this help message and exit
+  -h HOST, --host HOST
+  -p PORT, --port PORT
+  --threaded
+  --processes PROCESSES
+  --passthrough-errors
+  -d, --debug           enable the Werkzeug debugger (DO NOT use in production
+                        code)
+  -D, --no-debug        disable the Werkzeug debugger
+  -r, --reload          monitor Python files for changes (not 100{'default':
+                        None, 'nargs': 0, 'container':
+                        <argparse._ArgumentGroup object at 0x0190F6F0>,
+                        'help': 'monitor Python files for changes (not 100%
+                        safe for production use)', 'metavar': None, 'choices':
+                        None, 'prog': 'hello.py runserver', 'const': True,
+                        'type': None, 'dest': 'use_reloader',
+                        'option_strings': ['-r', '--reload'], 'required':
+                        False}afe for production use)
+  -R, --no-reload       do not monitor Python files for changes
+
+(venv) D:\flasky>
+</textarea>
+</p>
+<p>
+--host自变量是一个有用的选项，因为--host告诉web服务器什么样的网络接口监听从客户端来的连接。默认情况下，Flask开发web服务器在localhost上监听连接，所以只有在运行服务器的电脑上发起的连接被监听。接下来的命令使得web服务器监听来自公共网络接口的连接，也能够监听在网络里其它电脑的连接：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ python hello.py runserver --host 0.0.0.0
+* Running on http://0.0.0.0:5000/
+* Restarting with reloader
+</textarea>
+</p>
+<p class="personal">
+我运行python hello.py runserver --host 0.0.0.0命令后信息显示如下：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) D:\flasky>python hello.py runserver --host 0.0.0.0
+ * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+</textarea><br />
+当我用运行服务器的电脑访问服务器时，服务器运行显示的信息如下：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) D:\flasky>python hello.py runserver --host 0.0.0.0
+ * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+127.0.0.1 - - [02/Jun/2016 12:09:24] "GET / HTTP/1.1" 200 -
+</textarea><br />
+多的那行信息解释就是：从127.0.0.1这个ip地址，在什么时间，通过什么方式，采用了什么协议，成功地访问了服务器。
+</p>
+<p>
+Web服务器应该现在可以进入了，从任何网络中的电脑访问http://a.b.c.d:5000，这里的“a.b.c.d”是运行服务器电脑的外部IP地址。
+</p>
+<p>
+本章介绍了对于请求的响应概念，但还是有很多关于响应的话要说。Flask提供非常好的支持，为产生响应使用的模板，这就是下一章所关注的一个重要话题。
+</p>
+</fieldset>
+
+</body>
+</html>

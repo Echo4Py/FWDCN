@@ -1,0 +1,509 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="description" content="Flask Web Development" />
+<meta name="keywords" content="Flask, Flask Web, Flask Web Development" />
+<!--<meta name="robots" content="noindex,nofollow" />-->
+<title>Chapter3</title>
+<link type="text/css" rel="stylesheet" href="../css/forscreen.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="" media="print" />
+<link rel="stylesheet" type="text/css" href="" media="handheld" />
+</head>
+<body>
+<h1>模板</h1>
+<p>
+写干净和好结构的代码是写容易维护的应用关键。迄今为止你所看到的示例很容易证明这一点，但Flask方法函数有2个完整独立的目的被掩饰为一个了，这就产生了一个问题。
+</p>
+<p>
+一个方法函数显而易见的任务是对一个请求产生一个响应，作为你在<a href="chapter2.html#f12">第二章</a>显示的示例中所看到的。对于最简单的请求这是足够的，但普遍来说一个请求在应用的状态里面触发一个变化，而且方法函数就产生在这个变化的地方。
+</p>
+<p>
+例如，考虑到一个用户在一个网站上注册一个新帐户。用户在一个web表单中输入一个电子邮件地址和一个密码，并且单击了提交按钮。在服务器上，一个请求包含了从用户来的数据到达服务器，并且Flask派发给方法函数处理注册请求。这个方法函数需要告诉数据库去得到新增的用户，并且产生一个响应发送回浏览器。这两个任务类型正规地分别被叫做business logic(事务逻辑)和presentation logic（报告逻辑）。
+</p>
+<p>
+把事务和报告逻辑混合到代码是很难理解和维修的。想象一下为一个大型表格建立HTML代码通过从数据库获得的数据必须有HTML字符串文字。把报告逻辑移到模板里帮助了提高应用的维修。
+</p>
+<p>
+一个模板是一个文件，这个文件内容包含一个响应的文本，带有提供给动态部分的位置标志符变量，位置标志符变量只有在一个请求环境中将被知道。用实际变量替换这些位置标志符变量的过程以及被称作翻译的返回一个最终响应字符串。对于翻译模板的任务，Flask使用一个强大模板引擎叫做Jinja2。
+</p>
+<fieldset id="f22">
+<legend>Jinja2模板引擎</legend>
+<p>
+在最简单表单中，一个Jinja2模板是一个文件，这个文件包含响应的文本。示例3-1显示一个Jinja2模板，这个模板匹配示例2-1的index()方法函数的响应。
+</p>
+<p>
+示例3-1. templates/index.html: Jinja2模板<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+<h1>Hello World！</h1>
+</textarea>
+</p>
+<p>
+响应通过示例2-2的方法函数user()返回，有了一个动态部分，这个动态部分是通过一个变量表现的。示例3-2显示了执行这个响应的模板。
+</p>
+<p>
+示例3-2. templates/user.html：Jinja2模板<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+<h1>Hello, {{name}}!</h1>
+</textarea>
+</p>
+</fieldset>
+<fieldset id="f23">
+<legend>翻译模板</legend>
+<p>
+默认Flask在应用所在的文件夹里寻找一个template子文件夹。对于下一个hello.py版本，你需要把前面定义的模板保存在一个新的templates文件夹里，存储为index.html和user.html。
+</p>
+<p>
+在应用中的方法函数需要修改为翻译这些模板。示例3-3. hello.py：翻译一个模板<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask import Flask, render_template
+
+# ...
+
+@app.route('/index')
+def index():
+    return render_template('index.html')
+    
+@app.route('/user/<name>')
+def user(name):
+    return render_template('user.html', name=name)
+</textarea>
+</p>
+<p>
+Flask整合Jinja2模板引擎给应用提供了render_template函数。这个函数获得模板的文件名作为函数第一个自变量。任何附加的自变量是一对key/value，这样说明在模板中变量的实际值。在这个示例里，第二个模板正在接收一个name变量。
+</p>
+<p>
+关键字自变量，就像在前面的示例中的name=name，是相当地常见，但如果你不常用它们也许看起来困惑和难于理解。左边的name表示了自变量的名字，在模板中这个name用于所写的位置占位符。右边的name是一个现在范围内的变量，这个变量name为相同名字的自变量提供了值。
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经克隆了GitHub上的应用Git容器，你可以运行git checkout 3a检查这个应用版本。
+</p>
+</fieldset>
+<fieldset id="f24">
+<legend>变量</legend>
+<p>
+显示在示例3-2中的{{name}}结构被用在模板中注明是一个变量，一个特殊的位置占位符告诉模板引擎那个值出现在的位置在那个时候将从提供的数据获得被翻译的模板。
+</p>
+<p>
+Jinja2认识任何类型的变量，甚至复杂类型例如列表，字典和对象。接下来是一些在模板中使用的变量示例：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+<p>A value from a dictionary: {{ mydict['key'] }}.</p>
+<p>A value from a list: {{ mylist[3] }}.</p>
+<p>A value from a list, with a variable index: {{ mylist[myintvar] }}.</p>
+<p>A value from an object's method: {{ myobj.somemethod() }}.</p>
+</textarea>
+</p>
+<p>
+变量能用过滤器来描述，过滤器增加在变量名后面，带有一个管道字符作为分隔符。例如，接下来模板展示了首字母大写name变量：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+Hello, {{ name|capitalize }}
+</textarea>
+</p>
+<p>
+表格3-1 列出Jinja2一些常用的过滤器。
+</p>
+<table id="t1">
+<caption>表格3-1. Jinja2变量过滤器</caption>
+<tr>
+  <th>Filter name</th>
+  <th>Description</th>
+</tr>
+<tr>
+  <td>safe</td>
+  <td>Renders the value without applying escaping</td>
+</tr>
+<tr>
+  <td>capitalize</td>
+  <td>Converts the first character of the value to uppercase and the rest to lowercase</td>
+</tr>
+<tr>
+  <td>lower</td>
+  <td>Converts the value to lowercase characters</td>
+</tr>
+<tr>
+  <td>upper</td>
+  <td>Converts the value to uppercase characters</td>
+</tr>
+<tr>
+  <td>title</td>
+  <td>Capitalizes each word in the value</td>
+</tr>
+<tr>
+  <td>trim</td>
+  <td>Removes leading and trailing whitespace from the value</td>
+</tr>
+<tr>
+  <td>striptags</td>
+  <td>Removes any HTML tags from the value before rendering</td>
+</tr>
+</table>
+<p>
+safe过滤器对高亮感兴趣。默认地Jinja2为了安全目的逃避所有变量。例如，如果一个变量被设置的值为'&lt;h1&gt;Hello&lt;/h1&gt;'，Jinja2将翻译这个字符串为'&amp;lt;h1&amp;gt;Hello&amp;lt;/h1&amp;gt;'，这样使得h1元素被显示并且不是被浏览器编译。很多时候需要显示存储在变量里的HTML代码，并且只有那样safe过滤器才被使用。
+</p>
+<p>
+<img src="../imgs/warning.png" alt="a warning or caution" />永远不要在不可靠的值上使用safe过滤器，例如在web表单上被用户输入的文本。
+</p>
+<p>
+完整的过滤器列表在官方<a href="http://jinja.pocoo.org/docs/dev/templates/#builtin-filters">Jinja2文档</a>中能被获得。
+</p>
+</fieldset>
+<fieldset id="f25">
+<legend>控制结构</legend>
+<p>
+Jinja2提供很多控制结构，这些结构能被用来改变模板的流动。这部分用简单的示例介绍一些很有用的结构。
+</p>
+<p>
+接下来的示例展示了在一个模板中怎样表述条件能被键入：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{% if user %}
+	Hello, {{ user }}!
+{% else %}
+	Hello, Stranger!
+{% endif %}
+</textarea>
+</p>
+<p>
+在模板中另外常需要的是翻译一个元素列表。这个例子展示了如何用一个for循环能做到：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+<ul>
+	{% for comment in comments %}
+		<li>{{ comment }}</li>
+	{% endfor %}
+</ul>
+</textarea>
+</p>
+<p>
+Jinja2也支持macros宏指令，这在Python代码中有些与函数相似。例如：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{% macro render_comment(comment) %}
+	<li>{{ comment }}</li>
+{% endmacro %}
+
+<ul>
+	{% for comment in comments %}
+		{{ render_comment(comment) }}
+	{% endfor %}
+</ul>
+</textarea>
+</p>
+<p>
+写更可重复使用的宏指令，这样的宏指令能被存储在单独文件中，这些文件在需要它们的时候从所有模板中导入进来：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{% import 'macros.html' as macros %}
+<ul>
+	{% for comment in comments %}
+		{{ macros.render_comment(comment) }}
+	{% endfor %}
+</ul>
+</textarea>
+</p>
+<p>
+模板代码的部分需要在很多地方被重复，这部分代码被存储在一个隔离文件中并且所有模板都包含，为了避免重复书写：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{% include 'common.html' %}
+</textarea>
+</p>
+<p>
+然而另外为了重复使用的有力方法是通过模板继承，这个继承与Python代码中的类继承相似。第一，一个基础模板用base.html名字建立：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+<html>
+<head>
+	{% block head %}
+	<title>{% block title %}{% endblock %} - My Application</title>
+	{% endblock %}
+</head>
+<body>
+	{% block body %}
+	{% endblock %}
+</body>
+</html>
+</textarea>
+</p>
+<p>
+这里的block标签定义了元素，定义了一个可以改变的衍生模板。在这个示例中，这些block叫做head，title和body；注意title被head包裹着。接下来的示例是一个基础模板的衍生模板。<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{% extends "base.html" %}
+{% block title %}Index{% endblock %}
+{% block head %}
+	{{ super() }}
+	<style>
+	</style>
+{% endblock %}
+{% block body %}
+<h1>Hello, World!</h1>
+<% endblock %}
+</textarea>
+</p>
+<p>
+extends指令声明这个模板的源头是base.html。这个指令后面跟着在基础模板中被定义的三个block新定义，它们被插入到合适的位置。注意head的新定义，这个head在基础模板中不是空的，使用super()来保留原来的内容。
+</p>
+<p>
+实际生活中所有出现的控制结构的用法都将稍后被展示出来，所以你将有机会看到它们是如何工作的。
+</p>
+</fieldset>
+<fieldset id="f26">
+<legend>Twitter引导程序集成了Flask-Bootstrap</legend>
+<p>
+<a href="http://getbootstrap.com/">Bootstrap</a>是Twitter的一个开源框架，用来提供用户接口元件来建立干净和有魅力的Web页面，并且所有现代Web浏览器都兼容。
+</p>
+<p>
+Bootstrap是一个客户端框架，那么服务器并没有直接包含它。所有服务器需要做的是提供HTML响应，这些响应通过HTML，CSS和JavaScript代码注明Bootstrap的串联CSS和JavaScript文件以及举例说明想的到的部件。这些想法都放在了模板中。
+</p>
+<p>
+显而易见的整合Bootstrap到应用的方法是制作所有需要的变化到模板。一个比较简单的方法是使用一个Flask扩展，叫做Flask-Bootstrap，简化了整合这件事。Flask-bootstrap能被用pip安装：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ pip install flask-bootstrap
+</textarea>
+</p>
+<p class="personal">
+我用git bash运行安装flask-bootstap后显示内容如下：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv)
+Administrator@QiXin MINGW32 /d/flasky ((3a))
+$ pip install flask-bootstrap
+Collecting flask-bootstrap
+  Downloading Flask-Bootstrap-3.3.6.0.tar.gz (456kB)
+Requirement already satisfied (use --upgrade to upgrade): Flask>=0.8 in d:\flasky\venv\lib\site-packages (from flask-bootstrap)
+Collecting dominate (from flask-bootstrap)
+  Downloading dominate-2.2.0.zip
+Collecting visitor (from flask-bootstrap)
+  Downloading visitor-0.1.3.tar.gz
+Requirement already satisfied (use --upgrade to upgrade): itsdangerous>=0.21 in d:\flasky\venv\lib\site-packages (from Flask>=0.8->flask-bootstrap)
+Requirement already satisfied (use --upgrade to upgrade): Jinja2>=2.4 in d:\flasky\venv\lib\site-packages (from Flask>=0.8->flask-bootstrap)
+Requirement already satisfied (use --upgrade to upgrade): Werkzeug>=0.7 in d:\flasky\venv\lib\site-packages (from Flask>=0.8->flask-bootstrap)
+Requirement already satisfied (use --upgrade to upgrade): MarkupSafe in d:\flasky\venv\lib\site-packages (from Jinja2>=2.4->Flask>=0.8->flask-bootstrap)
+Building wheels for collected packages: flask-bootstrap, dominate, visitor
+  Running setup.py bdist_wheel for flask-bootstrap: started
+  Running setup.py bdist_wheel for flask-bootstrap: finished with status 'done'
+  Stored in directory: C:\Documents and Settings\Administrator\Local Settings\Application Data\pip\Cache\wheels\5b\4e\08\4bc50e7795d52b90683489a3d21903b0cf41562fd6ca5ab4fc
+  Running setup.py bdist_wheel for dominate: started
+  Running setup.py bdist_wheel for dominate: finished with status 'done'
+  Stored in directory: C:\Documents and Settings\Administrator\Local Settings\Application Data\pip\Cache\wheels\a8\cf\f9\f1575df1ba08556a4b74ab1f6b54303a2f9539ddccb1c6aff5
+  Running setup.py bdist_wheel for visitor: started
+  Running setup.py bdist_wheel for visitor: finished with status 'done'
+  Stored in directory: C:\Documents and Settings\Administrator\Local Settings\Application Data\pip\Cache\wheels\8e\5e\41\c0f515d39b38d492db6d7c12fc4d027385a76fb01aebc9c2b3
+Successfully built flask-bootstrap dominate visitor
+Installing collected packages: dominate, visitor, flask-bootstrap
+Successfully installed dominate-2.2.0 flask-bootstrap-3.3.6.0 visitor-0.1.3
+(venv)
+Administrator@QiXin MINGW32 /d/flasky ((3a))
+$
+
+</textarea>
+</p>
+<p>
+Flask扩展经常在应用场合被建立时就已经初始化了。示例3-4展示了Flask-Bootstrap初始化。
+</p>
+<p>
+示例3-4. hello.py：Flask-bootstrap初始化<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.bootstrap import Bootstrap
+# ...
+bootstrap = Bootstrap(app)
+</textarea>
+</p>
+<p>
+像在<a href="chapter2.html#f21">第二章</a>中的Flask-Script，Flask-Bootstrap从flask.ext名字空间被导入并且通过传递应用场合到构造器里进行被初始化。
+</p>
+<p>
+一旦Flask-Bootstrap被初始化了，一个基础模板包含了所有Bootstrap文件，这个基础模板可以用到应用中。这个模板获得了Jinja2模板继承的优势；应用提供一个基础模板，这个基础模板具有页面的常规结构包含导入Bootstrap元素。示例3-5展示一个user.html新版本作为一个衍生的模板。
+</p>
+<p>
+示例3-5. templates/user.html：使用了Flask-Bootrstrap的模板<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{% extends "bootstrap/base.html" %}
+
+{% block title %}Flasky{% endblock %}
+
+{% block navbar %}
+<div class="navbar navbar-inverse" role="navigation">
+	<div class="container">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="/">Flasky</a>
+		</div>
+		<div class="navbar-collapse collapse">
+			<ul class="nav navbar-nav">
+				<li><a href="/">Home</a></li>
+			</ul>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	<div class="page-header">
+		<h1>Hello, {{ name }}!</h1>
+	</div>
+</div>
+{% endblock %}
+</textarea>
+</p>
+<p>
+Jinja2的extends指令执行了模板继承，通过注明boot-strap/base.html的出处是从Flask-Bootstrap来的。基础模板从Flask-Bootstrap提供了一个骨架网页，这个骨架网页中包含所有Bootstrap CSS和JavaScript文件。
+</p>
+<p>
+基础模板定义的blocks能被衍生模板覆盖。block和endblock指令定义了被增加到基础模板的blocks内容。
+</p>
+<p>
+上面的user.html模板定义了3个block，分别叫做title，navbar和content。这些blocks是基础模板为衍生模板输出的所有blocks。title是易懂的；title的内容将显示在翻译过的HTML文档的header里面的&lt;title&gt;标签之间。navbar和content是保留给页面导航栏和主要内容。
+</p>
+<p>
+在这个模板里，navbar代码块使用Bootstrap零件定义了一个简单的导航栏。content代码块有一个&lt;div&gt;容器，容器里面有一个页面的header。在前面模板的版本里的问候行现在在页面header里了。Figure3-1显示了应用有了这些变化后看起来是什么样子的。
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你克隆了在GitHub上的应用Git仓库，你能运行git checkout 3b来检查这个版本的应用。<a href="http://getbootstrap.com/">Bootstrap官方文档</a>是一个很强大学习资源，那里面充满了可以用来复制粘贴的例子。
+</p>
+<p>
+Flask-Bootstrap的基础模板定义了很多其他block，这些block能被用在衍生模板中。Table 3-2显示了完整可利用的block列表。
+</p>
+<p>
+<table id="t2">
+<caption>表格 3-2. Flask-Bootstrap的基础模板block</caption>
+<tr>
+  <th>Block name</th>
+  <th>Description</th>
+</tr>
+<tr>
+  <td>doc</td>
+  <td>The entire HTML document</td>
+</tr>
+<tr>
+  <td>html_attribs</td>
+  <td>Attributes inside the &lt;html&gt; tag</td>
+</tr>
+<tr>
+  <td>html</td>
+  <td>The contents of the &lt;html&gt; tag</td>
+</tr>
+<tr>
+  <td>head</td>
+  <td>The contents of the &lt;head&gt; tag</td>
+</tr>
+<tr>
+  <td>title</td>
+  <td>The contents of the &lt;title&gt; tag</td>
+</tr>
+<tr>
+  <td>metas</td>
+  <td>The list of &lt;meta&gt; tag</td>
+</tr>
+<tr>
+  <td>styles</td>
+  <td>Cascading stylesheet definitions</td>
+</tr>
+<tr>
+  <td>body_attribs</td>
+  <td>Attributes inside the &lt;body&gt; tag</td>
+</tr>
+<tr>
+  <td>body</td>
+  <td>The contents of the &lt;body&gt; tag</td>
+</tr>
+<tr>
+  <td>navbar</td>
+  <td>User-defined navigation bar</td>
+</tr>
+<tr>
+  <td>content</td>
+  <td>User-defined page content</td>
+</tr>
+<tr>
+  <td>scripts</td>
+  <td>JavaScript declarations at the bottom of the document</td>
+</tr>
+</table>
+</p>
+<p>
+在表格3-2中的这些block是通过Flask-Bootstrap被使用的，所以覆盖它们直接会引起一些问题。例如，styles和scirpts这两个block在Bootstrap文件里被声明。如果应用需要增加自己内容到一个已经有一些内容的block的话，那么Jinja2的super()函数必须被使用。例如，这个scripts block如何需要被写入衍生模板来增加一个新的JavaScript文件到文档：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript" src="my-script.js"></script>
+{% endblock %}
+</textarea>
+</p>
+</fieldset>
+<fieldset id="f27">
+<legend>自定义错误页面</legend>
+<p>
+当你输入一个非法路线在你的浏览器地址栏中，你得到一个404代码错误页面。这个错误页面现在是非常简单以及没有吸引力的，并且这个错误代码与使用了Bootstrap的页面无法保持一致性。
+</p>
+<p>
+Flask允许应用定义一个基于模板的自定义错误页面，像有规律的路线。2个最常见的错误代码是当客户端请求一个不知道的页面或路线时触发404，以及当有一个没有处理的例外时触发500。示例 3-6 显示如何为这2个错误提供自定义处理器。
+</p>
+<p>
+示例 3-6. hello.py：自定义错误页面<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+    
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('500.html'), 500
+</textarea>
+</p>
+<p>
+错误处理器返回一个响应，像方法函数。它们也返回数值状态代码与错误一一对应。
+</p>
+<p>
+在错误处理器里模板参数需要被写出来。这些模板将随着相同布局的规则页面，那么在这个案例中它们有一个导航栏和一个页面页眉来显示错误消息。
+</p>
+<p>
+直接写这些模板的方式是复制templates/user.html到templates/404.html和templates/500.html以及然后改变页面页眉元素，在这两个新文件中占用了错误消息，但这将产生大量副本。
+</p>
+<p>
+Jinja2的模板继承特性能有所帮助。同样的方法Flask-Bootstrap提供一个带有基本布局页面的基础模板，应用能定义它自己的基础模板，基础模板带有一个更完整页面布局，这个页面布局包含导航栏和离开页面内容，导航栏和离开页面在衍生模板中被定义。示例3-7显示templates/base.html，一个新模板，这个新模板从bootstrap/base.html继承并且定义导航栏，但它本身对其它模板来说就是一个基础模板，例如templates/user.html，templates/404.html，和templates/500.html。
+</p>
+<p>
+示例3-7. templates/base.html：带有导航栏的基础应用程序模板
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{% extends "bootstrap/base.html" %}
+
+{% block title %}Flasky{% endblock %}
+
+{% block navbar %}
+<div class="navbar navbar-inverse" role="navigation">
+	<div class="container">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+				<span class="sr-only"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="/">Flasky</a>
+		</div>
+		<div class="navbar-collapse collapse">
+			<ul class="nav navbar-nav">
+				<li><a href="/">Home</a></li>
+			</ul>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	{% block page_content %}{% endblock %}
+</div>
+{% endblock %}
+</textarea>
+<p>
+在这个模板的content block中只是一个容器&lt;div&gt;元素。div元素包裹着一个新的空的block，叫做page_content，源自模板的page_content能定义。
+</p>
+<p>
+代替直接从Flask-Bootstrap继承，应用程序的模板将现在从这个模板继承。
+</p>
+</fieldset>
+
+</body>
+</html>

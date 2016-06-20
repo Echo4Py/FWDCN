@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="description" content="Flask Web Development" />
+<meta name="keywords" content="Flask, Flask Web, Flask Web Development" />
+<!--<meta name="robots" content="noindex,nofollow" />-->
+<title>Chapter1</title>
+<link type="text/css" rel="stylesheet" href="../css/forscreen.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="" media="print" />
+<link rel="stylesheet" type="text/css" href="" media="handheld" />
+</head>
+<body>
+<h1>介绍Flask</h1>
+<fieldset id="f8">
+<legend>安装</legend>
+<p>
+Flask是一个符合大部分标准的小框架，小到足可以称为“微型框架”。它的小足够你一次就可熟悉它，你将喜欢阅读和理解它的所有源代码。
+</p>
+<p>
+但是小并不意味着比其它框架缺少什么。Flask被设计成一个可扩展的框架，能不断成长；Flask提供了一个基本服务的固定核心，即使扩展部分不起作用的时候。因为你可以选择你想要的扩展包，你终止一堆扩展包也不会变得肿胀起来并且完全根据你需要来增加扩展包。
+</p>
+<p>
+Flask有2个主要的依赖。routing、debugging和Web Server Gateway Interface(WSGI)子系统是由Werkzeug提供，模板支持则由Jinja2来提供。Werkzeug和Jinja2是由Flask开发核心人员编写的。
+</p>
+<p>
+对于执行数据库、验证web表单、验证用户或者其它高级任务来说在Flask中没有本地支持。这些和很多其它关键服务大部分Web应用需求都是可以通过扩展与核心package整合的。作为一个开发者，你有力量去择优选择对你的项目最好的扩展，或者甚至写你自己的扩展。这是在和一个大型框架对比过后，在大型框架中很多选择被固定化而且你很难或者有些时候不可能去改变什么。
+</p>
+<p>
+在这章节里，你将学会如何安装Flask。唯一的要求是你需要一台装有Python的电脑。
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />本书中的实例代码都已经确认过能在Python2.7和Python3.3中执行，那么使用两个版本中的一个代码是强烈的建议。
+</p>
+</fieldset>
+
+<fieldset id="f9">
+<legend>使用虚拟环境</legend>
+<p>
+大多数方便地来安装Flask方法是使用一个虚拟环境。一个虚拟环境提供了一个私有的Python解释器副本，你可以在这个副本中安装个人化的package，不会影响在你系统中已经安装过的全局Python解释器。
+</p>
+<p>
+虚拟环境非常有用，因为能防止系统中的Python解释器package混乱和版本冲突。为每一个应用建立一个虚拟环境能保证每个应用所要执行的package被这个应用使用，这样全局解释器就会保持很干净，并且只作为一个源头来服务，不管你建立多少个虚拟环境。作为一个附加的好处，虚拟环境不需要administrator权限。
+</p>
+<p>
+虚拟环境用第三方virtualenv程序建立。输入以下命令检查你是否已经安装在你的系统里：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ virtualenv --version
+</textarea>
+如果你得到一个错误，你不得不安装这个程序。
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />Python3.3增加了虚拟环境的本地支持，通过venv模块和pyvenv命令。pyvenv能被用来代替virtualenv程序，但注意在python3.3中用pyvenv建立的虚拟环境不包括pip，pip需要你手动安装。这个限制在Python3.4中已经被移除了，在Python3.4中pyvenv能作为一个完整的virtualenv替代方案被使用了。
+</p>
+<p>
+大多Linux版本为virtualenv提供了一个package。例如，Ubuntu用户能用这个命令安装它：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ sudo apt-get install python-virtualenv
+</textarea>
+</p>
+<p>
+如果你使用Mac OS X系统，那么你用esay_install命令能安装virtualenv：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ sudo easy_install virtualenv
+</textarea>
+</p>
+<p>
+如果你用Microsoft Windows或其它操作系统，它们不提供一个官方virtualenv package，那么你安装virtualenv会有点复杂。
+</p>
+<p>
+使用你的Web浏览器，登录setuptools安装程序主页<a href="https://bitbucket.org/pypa/setuptools">https://bitbucket.org/pypa/setuptools</a>，找到一个下载安装程序脚本的连接。这个脚本叫做ez_setup.py。保存这个文件到你电脑临时文件夹，然后在这个文件夹中运行以下命令：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ python ez_setup.py
+$ easy_install virtualenv
+</textarea>
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />在使用这个命令之前，必须要用带有administrator权限的账户。在Microsoft Windows系统上，以管理员模式运行这个命令。在Unix类系统上，这两个安装命令必须用sudo或作为root用户来执行。一旦安装完，virtualenv程序能被常规账户调用。
+</p>
+<p>
+现在你需要建立文件夹来存储实例代码，这个代码可以从一个GitHub仓库获得。就像在“How to Work with the Example Code”中讨论的一样，大多数方便的办法是用Git客户端直接从GitHub检查代码。接下来的命令从GitHub下载了实例代码并初始化应用文件夹到“1a”版本，这个应用的初始化版本：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ git clone https://github.com/miguelgrinberg/flasky.git
+$ cd flasky
+$ git checkout 1a
+</textarea>
+</p>
+<p>
+接下来的步骤是在flasky文件夹里使用virtualenv命令建立Python虚拟环境。这个命令有一个单独需要讨论的：虚拟环境的名字。选择一个文件夹名字将被建立在现在目录里，并且所有文件都与这个虚拟环境有关系并且文件都在里面。一个为虚拟环境使用的常用名字惯例是venv：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ virtualenv venv
+New python executable in venv/bin/python2.7
+Also creating executable in venv/bin/python
+Installing setuptools........done.
+Installing pip...............done.
+</textarea>
+</p>
+<p class="personal">
+在我的使用的xp系统中，我在Git客户端执行以上命令后，有别于本书提供的说明：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ virtualenv venv
+Using base prefix 'c:\\python34'
+New python executable in D:\flasky\venv\Scripts\python.exe
+Installing setuptools, pip, wheel...done.
+</textarea><br />
+在本书的学习中，我将把自己在xp上的实际操作情况一同附在本书的中文学习笔记里。
+</p>
+<p>
+现在flasky文件夹里你有了一个venv文件夹，这是一个崭新的虚拟环境且包含了一个私人的Python解释器。开始使用这个虚拟环境吧，你不得不激活它。如果你正在用一个bash命令行（Linux和Mac OS X用户），你能激活这个虚拟环境，用这个命令：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ source venv/bin/activate
+</textarea><br />
+如果你正在用Microsoft Windows系统，激活命令是：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ venv\Scripts\activate
+</textarea><br />
+</p>
+<p class="personal">
+我在Git bash中输入命令时遇到一个错误，输入书中提供的Windows用的命令无效，当我用bash命令时成功了。结果如下：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+Administrator@QiXin MINGW32 /d/flasky ((1a))
+$ source venv/Scripts/activate
+(venv)
+</textarea><br />
+由此我是不是知道了Git客户端是Unix类系统环境呢？我查看了https://git-for-windows.github.io官网主页上的一段文字后，明白了在Git客户端里所作的操作就跟在Linux里操作一样，所以在本书中我要把bash命令用在Git bash中。原文如下：Git BASH
+Git for Windows provides a BASH emulation used to run Git from the command line. *NIX users should feel right at home, as the BASH emulation behaves just like the "git" command in LINUX and UNIX environments.
+</p>
+<p>
+当一个虚拟环境被激活后，这个虚拟环境的Python解释器的位置被加入到了PATH中，但这个变化不是永久的；它只作用在你现在命令期间。记住你已经激活了一个虚拟环境，这个激活命令会在命令提示符前描述虚拟环境的名字：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $
+</textarea><br />
+当你用虚拟环境工作时，想返回全局Python解释器时，在命令提示符后输入deactivate即可。
+</p>
+<p class="personal">
+那么我进行一下试验，以便搞懂上面所说的是什么意思，下面的代码展示告诉了我，当我激活这个虚拟环境后，我在Git bash中使用任何Linux命令都会是这个样子的：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv)
+Administrator@QiXin MINGW32 /d/flasky ((1a))
+$ ls
+hello.py  LICENSE  README.md  venv/
+(venv)
+Administrator@QiXin MINGW32 /d/flasky ((1a))
+$ cd venv
+(venv)
+Administrator@QiXin MINGW32 /d/flasky/venv ((1a))
+$ cd ..
+(venv)
+Administrator@QiXin MINGW32 /d/flasky ((1a))
+$
+
+</textarea><br />
+从以上这段代码的规律中发现，凡是命令提示符最前端带有(venv)这个，说明我现在使用的是虚拟环境下的Python解释器。
+</p>
+</fieldset>
+<fieldset id="f10">
+<legend>使用pip安装Python Package</legend>
+<p>
+大多数Python package使用pip程序被安装，virtualenv自动把安装的package增加到所有的虚拟环境中。当一个虚拟环境被激活时，pip程序的位置也被增加到PATH中。
+</p>
+<img src="../imgs/note.png" alt="a general note" />如果你在Python3.3下的pyvenv建立虚拟环境，那么pip必须手动安装。安装指令在pip website上可以看到。在Python3.4下的pyvenv安装pip是自动完成的。
+<p>
+为了安装Flask到虚拟环境，使用下面的命令：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ pip install flask
+</textarea>
+</p>
+<p class="personal">
+我运行完安装命令后，我所看到的是以下这个样式：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv)
+Administrator@QiXin MINGW32 /d/flasky ((1a))
+$ pip install flask
+Collecting flask
+  Downloading Flask-0.10.1.tar.gz (544kB)
+Collecting Werkzeug>=0.7 (from flask)
+  Downloading Werkzeug-0.11.10-py2.py3-none-any.whl (306kB)
+Collecting Jinja2>=2.4 (from flask)
+  Downloading Jinja2-2.8-py2.py3-none-any.whl (263kB)
+Collecting itsdangerous>=0.21 (from flask)
+  Downloading itsdangerous-0.24.tar.gz (46kB)
+Collecting MarkupSafe (from Jinja2>=2.4->flask)
+  Downloading MarkupSafe-0.23.tar.gz
+Building wheels for collected packages: flask, itsdangerous, MarkupSafe
+  Running setup.py bdist_wheel for flask: started
+  Running setup.py bdist_wheel for flask: finished with status 'done'
+  Stored in directory: C:\Documents and Settings\Administrator\Local Settings\Application Data\pip\Cache\wheels\b6\09\65\5fcf16f74f334a215447c26769e291c41883862fe0dc7c1430
+  Running setup.py bdist_wheel for itsdangerous: started
+  Running setup.py bdist_wheel for itsdangerous: finished with status 'done'
+  Stored in directory: C:\Documents and Settings\Administrator\Local Settings\Application Data\pip\Cache\wheels\fc\a8\66\24d655233c757e178d45dea2de22a04c6d92766abfb741129a
+  Running setup.py bdist_wheel for MarkupSafe: started
+  Running setup.py bdist_wheel for MarkupSafe: finished with status 'done'
+  Stored in directory: C:\Documents and Settings\Administrator\Local Settings\Application Data\pip\Cache\wheels\a3\fa\dc\0198eed9ad95489b8a4f45d14dd5d2aee3f8984e46862c5748
+Successfully built flask itsdangerous MarkupSafe
+Installing collected packages: Werkzeug, MarkupSafe, Jinja2, itsdangerous, flask
+Successfully installed Jinja2-2.8 MarkupSafe-0.23 Werkzeug-0.11.10 flask-0.10.1 itsdangerous-0.24
+(venv)
+Administrator@QiXin MINGW32 /d/flasky ((1a))
+$
+</textarea>
+</p>
+<p>
+使用这个命令，Flask和它依赖的都被安装到虚拟环境中。你可以通过启动Python解释器和试着import flask来核实Flask被正确安装：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ python
+>>> import flask
+>>>
+</textarea>
+如果没有错误显示，你恭喜你自己：你为下章做好准备了，下章你将写你第一个web应用。
+</p>
+<p class="personal">
+我在Git bash里输入上面python命令回车后，一直停留在光标闪烁状态，并没有进入到python环境里，不知道为什么？但是在CMD里面是可以的。我打算更新一下Git客户端版本，该死的GFW，拦阻访问Git官网下载最新版本，但是回家后我无意间用了一下经常连接不上的VPN竟然连上了，于是下载了最新版本。第二天早上到单位，我更新了Git客户端，在Git bash中依然跟昨天一样。当我查看Git安装目录里有一个git cmd程序时，我想试一下吧，不知道会是什么结果？于是我打开了这个，发现成功了！于是我把前面的一些在Windows下使用的命令重新操作了一下结果与在Git bash上看起来不一样，效果展示如下：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+D:\flasky>venv\Scripts\activate
+
+(venv) D:\flasky>python
+Python 3.4.4 (v3.4.4:737efcadf5a6, Dec 20 2015, 19:28:18) [MSC v.1600 32 bit (Intel)] on win32
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import flask
+>>>
+>>> quit()
+
+(venv) D:\flasky>
+</textarea><br />
+以后这样的话，我可以在git cmd中进行相关操作了。看来git bash还是针对Unix类系统中使用，Windows系统中还是用git cmd来进行命令操作。
+</p>
+</fieldset>
+
+</body>
+</html>
