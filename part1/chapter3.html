@@ -501,9 +501,67 @@ Jinja2的模板继承特性能有所帮助。同样的方法Flask-Bootstrap提�
 在这个模板的content block中只是一个容器&lt;div&gt;元素。div元素包裹着一个新的空的block，叫做page_content，源自模板的page_content能定义。
 </p>
 <p>
-代替直接从Flask-Bootstrap继承，应用程序的模板将现在从这个模板继承。
+代替直接从Flask-Bootstrap继承，应用程序的模板将现在从这个base.html模板继承。示例3-8显示了建造一个自定义404错误页面代码是多么简单，404错误页面从templates/base.html继承。
+</p>
+<p>
+示例3-8. templates/404.html: 404错误页面自定义代码使用模板继承
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{% extends "base.html" %}
+
+{% block title %}Flasky - Page Not Found{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+	<h1>Not Found</h1>
+</div>
+{% endblock %}
+</textarea>
+<p>
+templates/user.html通过让user.html从基础模板继承而被简化，像展示在示例3-9中这样。
+</p>
+<p>
+示例3-9. templates/user.html：使用模板继承特性简化页面模板
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{% extends "base.html" %}
+
+{% block tilte %}Flasky{% endblock %}
+{% block page_content %}
+<div class="page-header">
+	<h1>Hello, {{ name }}!</h1>
+</div>
+{% endblock %}
+</textarea>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经在GitHub上克隆了应用程序的Git容器，你可以运行git checkout 3c来检验应用程序的这个版本。
 </p>
 </fieldset>
-
+<fieldset id="f28">
+<legend>链接</legend>
+<p>
+任何应用程序将总是有多于1个路径，路径需要包含链接，这链接链接不同页面，例如在一个导航栏里。
+</p>
+<p>
+在模板中为简单的路径直接写URL作为链接是琐碎的，但在模板中为含有很多变量部分的动态路径直接写链接来建立URL会变得更加复杂。而且，在代码中在被定义的路径上所写的URL明确地建立一个不想要的依赖。如果众多路径被改组了，在模板中链接可能断掉。
+</p>
+<p>
+为了避免这些麻烦，Flask提供url_for()助手函数，这个函数从存储在应用程序的URL地图中的信息生产URL。<font class="think">URL map是什么？</font>
+</p>
+<p>
+在这个简单的用法中，这个函数执行了方法函数名字（或者endpoint名字，endpoint名字是使用app.add_url_route()定义的路径）作为它的单独变量并且返回它的URL。例如，在这个版本的hello.py中，调用url_for('index')将返回/斜杠。调用url_for('index', _external=True)将代替返回一个绝对URL，在这个例子中是http://localhost:5000/
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />当生产连接不同应用程序的路径的链接时，关联URL是足够的。绝对URL只为浏览器外部使用的链接提供需要，例如当通过邮件发送链接时。
+</p>
+<p>
+动态URL是通过使用url_for()来生产，通过把动态部分作为关键字自变量来传递。<br />
+例如，url_for('user', name='john', _external=True)将返回http://localhost:5000/user/john
+</p>
+<p>
+关键字自变量发送到url_for()是不受限制的，对于通过动态路径被使用的自变量。函数将增加任何额外变量到问号字符串。<br />
+例如，url_for('index', page=2)将返回/?page=2
+</p>
+</fieldset>
 </body>
 </html>
