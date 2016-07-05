@@ -563,5 +563,36 @@ templates/user.html通过让user.html从基础模板继承而被简化，像展�
 例如，url_for('index', page=2)将返回/?page=2
 </p>
 </fieldset>
+<fieldset id="f29">
+<legend>静态文件</legend>
+<p>
+Web应用程序不是单独用Python代码和模板构成。大多数应用程序也使用静态文件，例如图片，JavaScript源文件，和来自于HTML代码的CSS。
+</p>
+<p>
+在第二章中当hello.py应用程序的URL map被检查时，你可以再调用，一个静态条目显示在它里面。这就是因为注明的静态文件被处理为一个被定义成/static/&lt;filename&gt;特殊路径。例如，一个调用到url_for('static', filename='css/styles.css', _external=True)将返回http://localhost:5000/static/css/styles.css
+</p>
+<p>
+在它的默认配置里，Flask在本地应用程序根目录里的一个名叫static子文件夹中查找静态文件。如果想得到的话，文件能被组织在子目录中的这个文件夹里。当服务器收到从以前示例来的URL，服务器产生一个响应，这个响应包含一个在本地文件系统中的一个文件内容static/css/styles.css
+</p>
+<p>
+示例3-10显示应用程序如何能在地址栏中为浏览器显示包含一个在基础模板中的favicon.ico图标。
+</p>
+<p>
+示例3-10. templates/base.html：网页图标定义
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{% block head %}
+{{ super() }}
+<link rel="shortcut icon" href="{{ url_for('static', filename = 'favicon.ico') }} type="image/x-icon">
+<link rel="icon" href="{{ url_for('static', filename = 'favicon.ico') }}" type="image/x-icon">
+<% endblock %}
+</textarea>
+<p>
+图标生命被插入到head block的末尾。注意super()如何被用来保护在基础模板中被定义的block原始内容。
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经在GitHub上克隆应用程序的Git容器，你可以运行git checkout 3d来检查应用程序的这个版本。
+</p>
+</fieldset>
 </body>
 </html>
