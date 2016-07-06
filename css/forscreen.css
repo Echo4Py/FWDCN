@@ -10,6 +10,9 @@ font-family: Microsft YaHei;
 .header legend{
 font-size: 2em;
 }
+.header ul,li{
+font-size: 14pt;
+}
 .header :link{
 text-decoration: none;
 }

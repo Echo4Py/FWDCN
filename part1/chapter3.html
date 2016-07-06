@@ -594,5 +594,97 @@ Web应用程序不是单独用Python代码和模板构成。大多数应用程�
 <img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经在GitHub上克隆应用程序的Git容器，你可以运行git checkout 3d来检查应用程序的这个版本。
 </p>
 </fieldset>
+<fieldset id="f30">
+<legend>用Flask-Moment对数据和时间的本地化进行操作</legend>
+<p>
+当用户在世界不同地区里工作时，处理数据和时间在一个web应用程序中不是一个不重要的问题。
+</p>
+<p>
+服务器需要统一的时间单位，这单位是不受每个用户的本地影响，所以UTC被典型地使用，然而，在UTC里查看时间是困惑的，作为用户经常期望看到数据和时间呈现出他们本地时间和根据他们时区的本地格式化后自定义信息。
+</p>
+<p>
+一个允许服务器在UTC里专门地工作的优雅解决方案是发送这些时间单位到web浏览器，在浏览器上被换算成本地时间以及被渲染。web浏览器在这个任务上能做的更好，因为浏览器有入口到时区和用户电脑上的本地设置。
+</p>
+<p>
+这有一个出色的客户端开源库，这个库使用JavaScript写的，JavaScript在浏览器里渲染数据和时间被叫做moment.js。Flask-Moment是一个为Flask应用程序提供的扩展，Flask-Moment整合moment.js到Jinja2模板里。Flask-Moment是用pip来安装：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ pip install flask-moment
+</textarea>
+<p>
+扩展被初始化展示在示例3-11。
+</p>
+<p>
+示例3-11. hello.py：初始化Flask-Moment
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.moment import Moment
+moment = Moment(app)
+</textarea>
+<p>
+Flask-Moment除了依赖moment.js以外，还依赖jquery.js。这两个库需要直接包含在HTML文档的某个地方，在那里因为你可以选择什么版本来使用，或者通过扩展提供的助手函数，从一个CDN内容传递网络里哪一个参考测试这些库的版本。因为Bootstrap已经包含了jquery.js，只有moment.js需要被增加到这个案例里。示例3-12展示这个库在基础模板的scripts里如何被加载。
+</p>
+<p>
+示例3-12. templates/base.html：导入moment.js库
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{% block scripts %}
+{{ super() }}
+{{ moment.include_moment() }}
+{% endblock %}
+</textarea>
+<p>
+与时间戳工作，Flask-Moment建立对模板有效的一个moment类。在示例3-13中的例子为了翻译传递一个叫做current_time变量到模板。
+</p>
+<p>
+示例3-13. hello.py：增加一个datetime变量
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from datetime import datetime
+
+@app.route('/')
+def index():
+	return render_template('index.html', current_time=datetime.utcnow())
+</textarea>
+<p>
+示例3-14展示了在模板中current_time是如何被翻译的。
+</p>
+<p>
+示例3-14. templates/index.html：时间戳用Flask-Moment进行翻译
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+<p>The local date and time is {{ moment(current_time).format('LLL') }}.</p>
+<p>That was {{ moment(current_time).fromNow(refresh=True) }}</p>
+</textarea>
+<p>
+format('LLL')格式根据时区和在客户端里的本地设置翻译数据和时间。自变量决定翻译风格，从'L'到'LLLL'是为了冗长的不同程度。format()函数也能接收自定义格式说明符。
+</p>
+<p>
+在第二行展示出来的fromNow()翻译风格翻译了一个相关的时间戳和当时间发生时的自动提醒。最初这个时间戳将显示为“几秒钟以前”，但当时间发生了提醒选项将会继续保持更新，所以如果你离开打开的页面几分钟，你会看到文字变成了“1分钟以前”，然后“2分钟以前”，等等。
+</p>
+<p class="personal">
+format()的作用相当于你进入这个页面的时间。<br />
+fromNow()的作用就是能够让用户知道我在这个页面上花了多长时间浏览这个页面。如果你刷新页面或者重新访问这个页面时，这个提醒选项信息就会被重置为“a few seconds ago”。<br />
+这个技术可以用在监控某个页面的访问信息状态，这样就可以进行收集情报工作，就是说我可以知道什么时间有人访问？并且待了多长时间？
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经在GitHub上克隆了应用程序的Git容器，你可以运行git checkout 3e来检查这个应用的这个版本。
+</p>
+<p>
+Flask-Moment从moment.js提供了format()，fromNow()，fromTime()，calendar()，valueOf()，和unix()方法。查阅它的<a href="http://momentjs.com/docs/#/displaying/" target=_blank>文档</a>来学习关于提供的所有格式选项。
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />Flask-Moment承担通过服务器端应用处理时间戳，在UTC里是幼稚的datetime对象表达。看一看为标准库中datetime包提供的<a href="http://bit.ly/datepack" target=_blank>文档</a>，幼稚的和意识到的日期和时间对象信息。
+</p>
+<p>
+通过Flask-Moment翻译过的时间戳能被本地化成很多语言。一个语言能在模板里被选择，是通过传递语言代码到函数lang()：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{{ moment.lang('es') }}
+</textarea>
+<p>
+在本章使用所有被讨论过的技术，你可以为你的应用程序来建立现代和友好用户web页面。下章接触到的一个模板方面没有讨论：如何通过web表格与用户互动。
+</p>
+</fieldset>
 </body>
 </html>
