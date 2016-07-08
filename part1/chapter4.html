@@ -13,14 +13,50 @@
 <body>
 <h1>Web表格</h1>
 <p>
-
+请求对象，在第二章介绍了，曝光了客户端发送的所有信息，发送的信息都带有一个请求。在细节上，request.form提供入口到在POST请求中提交的表格数据。
 </p>
+<p>
+尽管在Flask的请求对象中所提供的支持对于web表格的处理是有意义的，这有一组任务数字变得单调乏味和重复。2个优良的示例是HTML代码产生给表格和提交表格数据的验证。
+</p>
+<p>
+<a href="http://pythonhosted.org/Flask-WTF/" target=_blank>Flask-WTF</a>扩展与web表格一起工作是一个更令人高兴的经历。这个扩展是一个Flask集成包，围绕着框架不可知的<a href="http://wtforms.readthedocs.io/en/latest/" target=_blank>WTForms</a>包。
+</p>
+<p>
+Flask-WTF和它自己的依赖能被用pip安装：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ pip install flask-wtf
+</textarea>
 <fieldset id="f31">
-<legend></legend>
+<legend>交叉地点请求伪造（CSRF）保护</legend>
+<p>
+默认下，Flask-WTF保护所有表格防御Cross-Site Request Forgery交叉地点请求伪造（CSRF）攻击。当一个恶意网站发送请求到一个不同的受害者登录的网站上，一个CSRF攻击就会发生。
+</p>
+<p>
+为了执行CSRF保护，Flask-WTF需要应用程序配置一个加密钥匙。Flask-WTF使用这个钥匙来产生加密过的token（语言符号），token被用来核实表单数据请求的真实性。示例4-1展示如何配置一个加密的钥匙。
+</p>
+<p>
+示例4-1. hello.py：Flask-WTF配置<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'hard to guess string'
+</textarea>
+</p>
+<p>
+这个app.config字典是一个普通目的的位置用来放置存储配置变量，配置变量被框架，扩展，或者应用程序本身使用。使用标准字典语法配置的值能被增加到app.config对象。配置对象也有方法来导入配置值，从文件中或者环境中导入。
+</p>
+<p>
+这个SECRET_KEY配置变量被用作一个普通目的的加密钥匙，这个变量被Flask和一些第三方扩展使用。作为它名字的含义，加密的强度依赖于这个变量的值是机密的。在每一个应用程序中挑选一个不同机密的钥匙，这个机密钥匙是你建立并且确认这个字符串是不被任何人知道的。
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />为了附加的安全，机密钥匙应该被存储在一个环境变量里，从而代替嵌入在代码里。这项技术在<a href="../part1/chapter7.html#">第七章</a>中被描述。
+</p>
+</fieldset>
+<fieldset id="f32">
+<legend>表格类</legend>
 <p>
 
 </p>
-
 </fieldset>
 
 </body>
