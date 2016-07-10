@@ -55,7 +55,25 @@ app.config['SECRET_KEY'] = 'hard to guess string'
 <fieldset id="f32">
 <legend>表格类</legend>
 <p>
+当使用Flask-WTF时，每一个web表格通过一个从Form类继承了的类表现出来。这个类定义了表单里的区域列表，每个被一个对象表现出来的。每个区域对象能有一个或多个验证者附着上；验证者是函数，这函数检查通过用户提交的输入是否合法。
+</p>
+<p>
+示例4-2展示一个简单web表格，这个表格有一个文本区域和一个提交按钮。
+</p>
+<p>
+示例4-2. hello.py：表格类定义<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.wtf import Form
+from wtforms import StringField, SubmitField
+from wtforms.validators import Required
 
+class NameForm(Form):
+    name = StringField('What is your name?', validators=[Required()])
+    submit = Submitfield('Submit')
+</textarea>
+</p>
+<p>
+在表格中的区域被定义成类变量，并且每个类变量被分配给一个带有区域类型的对象。在前面示例中，NameForm表格有一个名叫name的文本区域以及一个叫做submit的提交按钮。StringField类表现了一个带有一个type="text"属性的&lt;input&gt;元素。SubmitField类表现了一个带有一个type="submit"属性的&lt;input&gt;元素。第一个针对区域构造器自变量是标签，这个标签在把表格翻译成HTML时被使用。
 </p>
 </fieldset>
 
