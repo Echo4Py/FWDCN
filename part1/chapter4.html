@@ -5,7 +5,7 @@
 <meta name="description" content="Flask Web Development" />
 <meta name="keywords" content="Flask, Flask Web, Flask Web Development" />
 <!--<meta name="robots" content="noindex,nofollow" />-->
-<title>Chapter1</title>
+<title>Chapter4</title>
 <link type="text/css" rel="stylesheet" href="../css/forscreen.css" media="screen" />
 <link rel="stylesheet" type="text/css" href="" media="print" />
 <link rel="stylesheet" type="text/css" href="" media="handheld" />
@@ -74,6 +74,153 @@ class NameForm(Form):
 </p>
 <p>
 在表格中的区域被定义成类变量，并且每个类变量被分配给一个带有区域类型的对象。在前面示例中，NameForm表格有一个名叫name的文本区域以及一个叫做submit的提交按钮。StringField类表现了一个带有一个type="text"属性的&lt;input&gt;元素。SubmitField类表现了一个带有一个type="submit"属性的&lt;input&gt;元素。第一个针对区域构造器自变量是标签，这个标签在把表格翻译成HTML时被使用。
+</p>
+<p>
+选项validators自变量包括在StringField构造器中，StringField构造器定义了一个检验器列表，这个检验器列表在被接收以前将被应用到被用户提交的数据中。Required()验证器保证了输入区域不会空着被提交。
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />Form基础类被Flask-WTF扩展定义，所以Form是从flask.ext.wtf导入的。输入区域和验证器，不管怎么样都是从WTForms包裹中被直接导入的。
+</p>
+<p>
+标准的HTML区域列表被WTForms支持着，这个列表展示在Table4-1中。
+</p>
+<table id="t4" class="tables">
+<caption>Table4-1. WTForms标准HTML区域</caption>
+<tr>
+	<th>Field type</th>
+	<th>Description</th>
+</tr>
+<tr>
+	<td>StringField</td>
+	<td>Text field</td>
+</tr>
+<tr>
+	<td>TextAreaField</td>
+	<td>Multiple-line text field</td>
+</tr>
+<tr>
+	<td>PasswordField</td>
+	<td>Password text field</td>
+</tr>
+<tr>
+	<td>HiddenField</td>
+	<td>Hidden text field</td>
+</tr>
+<tr>
+	<td>DateField</td>
+	<td>Text field that accepts a datetime.date value in a given format</td>
+</tr>
+<tr>
+	<td>DateTimeField</td>
+	<td>Text field that accepts a datetime.datetime value in a given format</td>
+</tr>
+<tr>
+	<td>IntegerField</td>
+	<td>Text field that accepts an integer value</td>
+</tr>
+<tr>
+	<td>Decimalfield</td>
+	<td>Text field that accepts a decimal.Decimal value</td>
+</tr>
+<tr>
+	<td>FloatField</td>
+	<td>Text field that accepts a floating-point value</td>
+</tr>
+<tr>
+	<td>Booleanfield</td>
+	<td>Checkbox with True and Fales values</td>
+</tr>
+<tr>
+	<td>RadioField</td>
+	<td>List of radio buttons</td>
+</tr>
+<tr>
+	<td>SelectField</td>
+	<td>Drop-down list of choices</td>
+</tr>
+<tr>
+	<td>SelectMulitpleField</td>
+	<td>Drop-down list of choices with multiple selection</td>
+</tr>
+<tr>
+	<td>FileField</td>
+	<td>File upload field</td>
+</tr>
+<tr>
+	<td>SubmitField</td>
+	<td>Form submission button</td>
+</tr>
+<tr>
+	<td>FormField</td>
+	<td>Embed a form as a field in a container form</td>
+</tr>
+<tr>
+	<td>FieldList</td>
+	<td>List of fields of a given type</td>
+</tr>
+</table>
+<p>
+WTForms内置验证器列表展示在Table4-2中。
+</p>
+<table id="t5" class="tables">
+<caption>Table 4-2. WTForms验证器</caption>
+<tr>
+	<th>Validator</th>
+	<th>Description</th>
+</tr>
+<tr>
+	<td>Email</td>
+	<td>Validates an email address</td>
+</tr>
+<tr>
+	<td>EqualTo</td>
+	<td>Compares the values of two fields;useful when requesting a password to be entered twice for confirmation</td>
+</tr>
+<tr>
+	<td>IPAddress</td>
+	<td>Validates an IPv4 network address</td>
+</tr>
+<tr>
+	<td>Length</td>
+	<td>Validates the length of the string entered</td>
+</tr>
+<tr>
+	<td>NumberRange</td>
+	<td>Validates that the value entered is within a numeric range</td>
+</tr>
+<tr>
+	<td>Optional</td>
+	<td>Allows empty input on the field, skipping additional validators</td>
+</tr>
+<tr>
+	<td>Required</td>
+	<td>Validates that the field contains data</td>
+</tr>
+<tr>
+	<td>Regexp</td>
+	<td>Validates the input against a regular expression</td>
+</tr>
+<tr>
+	<td>URL</td>
+	<td>Validates a URL</td>
+</tr>
+<tr>
+	<td>AnyOf</td>
+	<td>Validates that the input is one of a list of possible values</td>
+</tr>
+<tr>
+	<td>NoneOf</td>
+	<td>Validates that the input is none of a list of possible values</td>
+</tr>
+</table>
+<p class="personal">
+看到这里，自己对form和table有了一个理解，form在翻译中是表格的意思，但在实际表现出来中发现table更倾向于我们生活中制作的表格的样式。从form的内容中我发现更倾向于表单的一种功能，所以这里让我了解到表单与表格可以说是在一个范畴中的不同类型，表单更具备动态的特性，可以实现提交输入的数据，表格更倾向一种静态的展示效果，把数据以表格形式显示出来。
+</p>
+</fieldset>
+<fieldset id="f33">
+<legend>表格的HTML翻译</legend>
+<p>
+
 </p>
 </fieldset>
 
