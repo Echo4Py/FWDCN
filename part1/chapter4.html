@@ -220,7 +220,103 @@ WTForms内置验证器列表展示在Table4-2中。
 <fieldset id="f33">
 <legend>表格的HTML翻译</legend>
 <p>
+当被调用的时候，表格区域是可以随时支取的，从一个模板把表格区域翻译成HTML。假定方法函数把一个NameForm场合当成一个名叫form的自变量传递到模板，模板能生产出以下一个简单的HTML表格：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+<form method="POST">
+	{{ form.name.label }} {{ form.name() }}
+	{{ form.submit() }}
+</form>
+</textarea>
+<p>
+当然，这个结果是非常缺少内容的。为了提高表格的可看程度，任何自变量发送到命令里，命令翻译的区域是被转化成HTML属性了；所以，例如，你可以给出区域id或者class属性，然后定义CSS样式：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+<form method="POST">
+	{{ form.name.label }} {{ form.name(id='my-text-field') }}
+	{{ form.submit() }}
+</form>
+</textarea>
+<p>
+但甚至用HTML属性，这个用这样的方法所需要翻译成一个表格的努力是有意义的，所以对Bootstrap的自己表格样式组来说，这是最好的补充，无论什么时候都可以。Flask-Bootstrap提供一个非常高级别的助手函数翻译一整个Flask-WTF表格，使用Bootstrap的预先定义好的表格样式，所有这些都用一个单一命令。使用Flask-Bootstrap，前面表格能被翻译成下面的形式：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{{ import "bootstrap/wtf.html" as wtf %}
+{{ wtf.quick_form(form) }}
+</textarea>
+<p>
+import用同样的方式像规范的Python脚本那样直接工作，并且允许模板元素被导入和被用在很多模板里。导入bootstrap/wtf.html文件定义了助手函数用Bootstrap翻译Flask-WTF表格。wtf.quick_form()函数获得一个Flask-WTF表格对象并且用默认的Bootstrap样式来翻译它。提供给hello.py完整的模板被展示在示例4-3中。
+</p>
+<p>
+示例4-3. templates/index.html：使用Flask-WTF和Flask-Bootstrap来翻译一个表格
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 
+{% block title %}Flasky{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+	<h1>Hello, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>
+</div>
+{{ wtf.quick_form(form) }}
+{% endblock %}
+</textarea>
+<p>
+模板的内容区域现在有了2个部分。第一个部分是一个显示一个问候的页面头。这有一个模板条件句被使用。在Jinja2里条件句有这样的格式{% if variable %}...{% else %}...{% endif %}。如果条件等于True，那么在if和else之间的内容直接显示出来，这个内容被翻译到模板。如果条件等于False，那么在else和endif之间的内容会被翻译到模板。例如当name模板自变量没被定义的时候模板将翻译字符串“Hello，Stranger！”。内容的第二部分使用wtf.quick_form()函数翻译NameForm对象。
+</p>
+</fieldset>
+<fieldset id="f34">
+<legend>在方法函数中表格处理</legend>
+<p>
+在新的hello.py版本中，index()方法函数将进行表格翻译，也同样接受表格数据。示例4-4展示升级后的index()方法函数。
+</p>
+<p>
+示例4-4. hello.py：路线方法
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+@app.route('/', methods=['GET', 'POST'])
+def index():
+	name = None
+	form = NameForm()
+	if form.validate_on_submit():
+		name = form.name.data
+		form.name.data = ''
+	return render_template('index.html', form=form, name=name)
+</textarea>
+<p>
+methods自变量增加到app.route装饰器告诉了Flask要去注册方法函数成为一个在URL map里为GET和POST请求的处理器。当methods没有被给出的时候，方法函数只被注册为GET请求处理器。
+</p>
+<p>
+增加POST到方法列表中是需要的，因为表格提交是更方便的被处理为POST请求。作为一个GET请求提交一个表格是可能的，但作为很多GET请求是没有主体的，数据作为一个问号字符串被追加到URL上并且变成在浏览器地址栏中是可以看得见的。因为这个和其它一些原因，表格提交大多数普遍地作为POST请求来工作。
+</p>
+<p>
+当表格中的名字是可变的时候，本地name变量被用来保存从表格收到的名字；当名字不被知道时，变量被初始化成None。方法函数建立一个前面展示的NameForm类场合到现在的表格。当表格被提交以及被所有区域验证器接收数据时，表格的validate_on_submit()方法返回True。在所有其它案例中，validate_on_submit()返回False。这种有效地服务方法的返回值决定表格是否需要被翻译或者被处理。
+</p>
+<p>
+当一个用户第一次航行到应用程序时，服务器将收到一个没有表格数据的GET请求，所以validate_on_submit()将返回False。if表达式的主体将被跳过并且请求将通过翻译模板被处理，获得哪种表格对象并且name变量设置成None作为自变量。用户现在将看到表格显示在浏览器中。
+</p>
+<p>
+当表格被用户提交时，服务器收到一个带有数据的POST请求。命令到validate_on_submit()处理附加名字区域的Required()验证器。如果名字不是空的，那么验证器接收它并且validate_on_submit()返回True。现在通过用户输入的名字是可得到作为区域的数据属性。在if表达式的主体里面，这个名字被分配到本地name变量并且表单区域被清空，这个被清空是通过设置data属性为一个空的字符串实现的。在最后一行里render_template()命令翻译了模板，但这个时候name自变量包含了从表单来的名字，所以问候将被个人化。
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经在GitHub上克隆了应用程序的Git容器，你可以运行git checkout 4a来检查这个版本的应用程序。
+</p>
+<p>
+图表4-1展示了当一个用户初始化进入这个网站的时候，在浏览器窗口里表单看起来如何。当用户提交一个名字的时候，应用程序响应了一个个人化的问候。表格仍显示在下面，所以一个用户如果渴望的话可以提交一个新名字。图表4-2显示了在这个状态中的应用程序。
+</p>
+<p>
+图表4-1. Flask-WTF网络表单
+</p>
+<p>
+如果用户提交一个空名字表单，Required()验证器捕获错误，像在图表4-3中看到样子。注意被自动地提供是多么功能化。这是一个有力量的很好示例，设计地很好的扩展像Flask-WTF以及Flask-Bootstrap能提供给你的应用程序。
+</p>
+<p>
+图表4-2. 提交后的web表单
+</p>
+<p>
+图表4-3. 验证失败后的web表单
 </p>
 </fieldset>
 
