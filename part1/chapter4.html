@@ -308,18 +308,18 @@ methods自变量增加到app.route装饰器告诉了Flask要去注册方法函�
 </p>
 <p>
 图表4-1. Flask-WTF网络表单<br />
-<img src="../imgs/figure41.png" alt="snapshot" />
+<img src="../imgs/figure41.png" alt="snapshot" class="figures" />
 </p>
 <p>
 如果用户提交一个空名字表单，Required()验证器捕获错误，像在图表4-3中看到样子。注意被自动地提供是多么功能化。这是一个有力量的很好示例，设计地很好的扩展像Flask-WTF以及Flask-Bootstrap能提供给你的应用程序。
 </p>
 <p>
 图表4-2. 提交后的web表单<br />
-<img src="../imgs/figure42.png" alt="snapshot" />
+<img src="../imgs/figure42.png" alt="snapshot" class="figures" />
 </p>
 <p>
 图表4-3. 验证失败后的web表单<br />
-<img src="../imgs/figure43.png" alt="snapshot" />
+<img src="../imgs/figure43.png" alt="snapshot" class="figures" />
 </p>
 </fieldset>
 <fieldset id="f35">
@@ -441,7 +441,7 @@ def index():
 </p>
 <p>
 图示4-4. 闪烁的消息<br />
-<img src="../imgs/figure44.png" alt="snapshot" />
+<img src="../imgs/figure44.png" alt="snapshot" class="figures" />
 </p>
 <p>
 一个循环被使用，是因为那里可能有很多消息列队来显示，一种是在先前的请求循环中为了每次flash()被调用。从get_flashed_messages()被恢复的消息不会被返回到这个函数下次被调用，所以闪烁的消息只显示一次后就被丢弃。
