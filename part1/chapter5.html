@@ -76,8 +76,282 @@
 </fieldset>
 <fieldset id="f40">
 <legend>Python数据库框架</legend>
-
+<p>
+Python有为数据库引擎的扩展包，即有开源的又有商业的。什么样的数据库扩展包能被使用Flask是没有限制的，所以如果这些当中任何一款是你所喜欢的，你可以与MySQL，Postgres，SQLite，Redis，MongoDB或者CouchDB一起工作。
+</p>
+<p>
+好像这些都不够选择的话，这也有许多数据库抽象层扩展包，例如SQLAlchemy或者MongoEngine允许你用正规Python对象工作在一个更高水平上来代替数据库实体，例如表格，文档或者疑问语言。
+</p>
+<p class="personal">
+数据库实体有哪些？这里说了几个，表格、文档、疑问语言都是数据库实体的具体内容。
+</p>
+<p>
+当选择一个数据库框架时，这里有大量因素会影响评价：
+</p>
+<ul>
+<li>容易使用</li>
+<p>
+当直接比较数据库引擎对抗数据库抽象层时，第二组明显胜出。抽象层，也叫做对象关系映射(ORMs)或者对象文档映射(ODMs)，抽象层提供清晰的以对象为目的的高级别操作到低级别数据库指令的转换。
+</p>
+<li>性能</li>
+<p>
+ORMs和ODMs从对象领域翻译到数据库领域的转换有一个总开销。在大多数情况中，性能处罚是可以忽略的，但它们并不总是这样。通常，使用ORMs和ODMs获得的生产力比一点性能上的下降更有价值，所以这不是一个完全放弃ORMs和ODMs的有效理由。选择一个数据库抽象层就讲得通了，而且这个数据库抽象层提供任选通向下面的数据库以防特殊操作需要被优化，特殊操作被优化是通过直接执行它们作为本地数据库指令。
+</p>
+<li>可移植性</li>
+<p>
+在你的开发和产品平台上数据库选择是有效的这一点必须被考虑。例如，如果你计划在一个云平台上设置你的应用程序主机，那么你应该找出这服务所提供的什么样的数据库选择。
+</p>
+<p>
+另外可移植性方面应用到ORMs和ODMs。尽管这些框架某方面为一个单独数据库引擎提供一个抽象层，其它的抽象甚至更高并且提供一个数据库引擎的选择，用一样的以对象为目的的接口都是可进入的。最好的这个示例就是SQLAlchemy ORM，这个东西支持一个关系数据库引擎的列表，包括受欢迎的MySQL，Postgres，和SQLite。
+</p>
+<p class="personal">
+abstraction抽象怎么理解？abstract有把...抽象出、提取、转移等意思，那么abstraction layer抽象层的理解可以说抽象层具有把什么东西转移到其它地方的功用。像前面提到的，选择抽象层可以防止某些操作对数据库执行本地化指令的效果，这样数据库就不容易被篡改。
+</p>
+<li>Flask集成</li>
+<p>
+选择一个用Flask集成的框架不是绝对需要的，但它会保存你自己写的集成代码。Flask集成可以简化配置和操作，所以使用一个专门设计的package作为一个Flask扩展是首选。
+</p>
+</ul>
+<p>
+基于这些目标，为本书中的示例选择的数据库框架会是<a href="http://flask-sqlalchemy.pocoo.org/2.1/" target=_blank>Flask-SQLAlchemy</a>，这是为<a href="http://www.sqlalchemy.org/" target=_blank>SQLAlchemy</a>设计的Flask扩展包。
+</p>
 </fieldset>
+<fieldset id="f41">
+<legend>用Flask-SQLAlchemy进行数据库管理</legend>
+<p>
+Flask-SQLAlchemy是一个Flask扩展，在Flask应用程序里简化了SQLAlchemy的使用。SQLAlchemy是一个有力的关系数据库框架，这框架支持很多数据库后端。它提供一个高级别ORM和低级别进入数据库的本地SQL功能。
+</p>
+<p class="personal">
+高级别与低级别的区别是什么？怎么理解高级别和低级别？
+</p>
+<p>
+像大多数其它扩展，Flask-SQLAlchemy用pip来安装：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ pip install flask-sqlalchemy
+</textarea>
+<p>
+在Flask-SQLAlchemy里，一个数据库被指定成一个URL。表格5-1为三个最受欢迎的数据库引擎列出了数据库URL的格式。
+</p>
+<table id="t6" class="tables">
+<caption>表格5-1. Flask-SQLAlchemy数据库URL</caption>
+<tr>
+	<th>Database engine</th>
+	<th>URL</th>
+</tr>
+<tr>
+	<td>MySQL</td>
+	<td>mysql://username:password@hostname/database</td>
+</tr>
+<tr>
+	<td>Postgres</td>
+	<td>postgresql://username:password@hostname/database</td>
+</tr>
+<tr>
+	<td>SQLite(Unix)</td>
+	<td>sqlite:////absolute/path/to/database</td>
+</tr>
+<tr>
+	<td>SQLite(Windows)</td>
+	<td>sqlite:///c:/absolute/path/to/database</td>
+</tr>
+</table>
+<p>
+在这些URL里，hostname指的是主持MySQL服务的服务器，这服务器可以是localhost或者是一个远程服务器。数据库服务器能主持很多数据库，所以database表明了使用的数据库名字。因为数据库需要证明，username和password是数据库用户凭证。
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />SQLite数据库没有一个服务器，所以hostname，username，和password被省略了并且database是一个磁盘文件的文件名。
+</p>
+<p>
+在Flask配置对象里应用程序数据库的URL必须被配置成SQLALCHEMY_DATABASE_URI钥匙。另外有用的选项是配置钥匙SQLALCHEMY_COMMIT_ON_TEARDOWN，这个能被设置成True来开启在每个请求末尾数据库变化的自动委托。查阅Flask-SQLAlchemy文档获得其它配置选项信息。示例5-1展示如何初始化和配置一个简单的SQLite数据库。
+</p>
+<p>
+示例5-1. hello.py：数据库配置
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.sqlalchemy import SQLAlchemy
 
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data.sqlite')
+app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
+
+db = SQLAlchemy(app)
+</textarea>
+<p>
+db对象从SQLAlchemy类被例示阐明数据库和提供所有Flask-SQLAlchemy的功能入口。
+</p>
+</fieldset>
+<fieldset id="f42">
+<legend>模型定义</legend>
+<p>
+model术语用来指明持续的被应用程序使用的实体。在一个ORM环境里，一个模型是典型的一个带有属性的Python类，匹配一个相应的数据库表格列。
+</p>
+<p>
+数据库场合从Flask-SQLAlchemy提供了一个为了模型的基础类，还提供了一套类和函数助手，这套助手被用来定义它们的结构。从图示5-1来的roles和users表格能被定义为模块Role和User，如示例5-2中展示的那样。
+</p>
+<p>
+示例5-2. hello.py：Role和User模块定义
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+class Role(db.Model):
+	__tablename__ = 'roles'
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(64), unique=True)
+	
+	def __repr__(self):
+		return '<Role %r>' % self.name
+		
+class User(db.Model):
+	__tablename__ = 'users'
+	id = db.Column(db.Integer, primary_key=True)
+	username = db.Column(db.String(64), unique=True, index=True)
+	
+	def __repr__(self):
+		return '<User %r> % self.username
+</textarea>
+<p>
+__tablename__类变量定义在数据库中表格的名字。如果__tablename__被忽略了Flask-SQLAlchemy分配一个默认表格名字，但那些默认名字不会遵循因为表格名字使用复数的惯例，所以它是最好用来明确地命名表格。剩下的类变量是模块的属性，定义成db.Column类的场合。
+</p>
+<p>
+第一个自变量被给到db.Column构造器是数据库列的类型和模块属性。表格5-2列出一些列类型，这些类型是变量，在模块中与使用的Python类型一起使用。
+</p>
+<table id="t7" class="tables">
+<caption>表格5-2. 大部分常用SQLAlchemy列类型</caption>
+<tr>
+	<th>Type name</th>
+	<th>Python type</th>
+	<th>Description</th>
+</tr>
+<tr>
+	<td>Integer</td>
+	<td>int</td>
+	<td>Regular integer, typically 32 bits</td>
+</tr>
+<tr>
+	<td>SmallInteger</td>
+	<td>int</td>
+	<td>Short-range integer, typically 16 bits</td>
+</tr>
+<tr>
+	<td>BigInteger</td>
+	<td>int or long</td>
+	<td>Unlimited precision integer</td>
+</tr>
+<tr>
+	<td>Float</td>
+	<td>float</td>
+	<td>Floating-point number</td>
+</tr>
+<tr>
+	<td>Numeric</td>
+	<td>decimal.Decimal</td>
+	<td>Fixed-point number</td>
+</tr>
+<tr>
+	<td>String</td>
+	<td>str</td>
+	<td>Variable-length string</td>
+</tr>
+<tr>
+	<td>Text</td>
+	<td>str</td>
+	<td>Variable-length string, optimized for large or unbound length</td>
+</tr>
+<tr>
+	<td>Unicode</td>
+	<td>unicode</td>
+	<td>Variable-length Unicode string</td>
+</tr>
+<tr>
+	<td>UnicodeText</td>
+	<td>unicode</td>
+	<td>Variable-length Unicode string, optimized for large or unbound length</td>
+</tr>
+<tr>
+	<td>Boolean</td>
+	<td>bool</td>
+	<td>Boolean value</td>
+</tr>
+<tr>
+	<td>Date</td>
+	<td>datetime.date</td>
+	<td>Date value</td>
+</tr>
+<tr>
+	<td>Time</td>
+	<td>datetime.time</td>
+	<td>Time value</td>
+</tr>
+<tr>
+	<td>DateTime</td>
+	<td>datetime.datetime</td>
+	<td>Date and time value</td>
+</tr>
+<tr>
+	<td>Interval</td>
+	<td>datetime.timedelta</td>
+	<td>Time interval</td>
+</tr>
+<tr>
+	<td>Enum</td>
+	<td>str</td>
+	<td>List of string values</td>
+</tr>
+<tr>
+	<td>PickleType</td>
+	<td>Any Python object</td>
+	<td>Automatic Pickle serialization</td>
+</tr>
+<tr>
+	<td>largeBinary</td>
+	<td>str</td>
+	<td>Binary blob</td>
+</tr>
+</table>
+<p>
+对于db.Column剩下的自变量为每个属性指定配置选项。表格5-3列出选项的一些变量。
+</p>
+<table id="" class="tables">
+<caption>表格5-3. 大部分常见SQLAlchemy列选项</caption>
+<tr>
+	<th>Option name</th>
+	<th>Description</th>
+</tr>
+<tr>
+	<td>primary_key</td>
+	<td>If set to True, the column is the table's primary key.</td>
+</tr>
+<tr>
+	<td>unique</td>
+	<td>If set to True, do not allow duplicate values for this column.</td>
+</tr>
+<tr>
+	<td>index</td>
+	<td>If set to True, create an index for this column, so that queries are more efficient.</td>
+</tr>
+<tr>
+	<td>nullable</td>
+	<td>If set to True, allow empty values for this column. If set to False, the column will not allow null values.</td>
+</tr>
+<tr>
+	<td>default</td>
+	<td>Define a default value for the column.</td>
+</tr>
+</table>
+<p>
+<img src="../imgs/note.png" alt="a general note" />Flask-SQLAlchemy需要所有模型去定义一个primary key列，正常来说被命名为id。
+</p>
+<p>
+尽管这不需要那么严格，为了调试和测试的目的，两个模块包含一个__repr__()方法来给它们一个可读字符串的表示法被使用了出来。
+</p>
+</fieldset>
+<fieldset id="f43">
+<legend>关系</legend>
+<p>
+
+</p>
+</fieldset>
 </body>
 </html>
