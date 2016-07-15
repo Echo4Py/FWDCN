@@ -313,7 +313,7 @@ __tablename__类变量定义在数据库中表格的名字。如果__tablename__
 <p>
 对于db.Column剩下的自变量为每个属性指定配置选项。表格5-3列出选项的一些变量。
 </p>
-<table id="" class="tables">
+<table id="t8" class="tables">
 <caption>表格5-3. 大部分常见SQLAlchemy列选项</caption>
 <tr>
 	<th>Option name</th>
@@ -349,6 +349,80 @@ __tablename__类变量定义在数据库中表格的名字。如果__tablename__
 </fieldset>
 <fieldset id="f43">
 <legend>关系</legend>
+<p>
+关系数据库在不同表格中通过关系的使用来建立行与行之间的连接。在图表5-1中的关系图解表达了一个用户与用户规则之间的简单的关系。这是一个从规则到用户的one-to-many一对多关系，因为一个规则属于很多用户和众多用户只有一个规则。
+</p>
+<p>
+示例5-3展示一对多关系在图示5-1中是如何在模块类中表现出来的。
+</p>
+<p>
+示例5-3. hello.py：关系
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+class Role(db.Model):
+	# ...
+	users = db.relationship('User', backref='role')
+	
+class User(db.Model):
+	# ...
+	role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+</textarea>
+<p>
+在图示5-1中所见，一个关系通过一个foreign key连接到2个行。role_id列被增加到User模块被定义成一个foreign key，并且建立了关系。'roles.id'自变量指向db.ForeignKey()说明列应该被解释成在roles表格里从行获得id值。
+</p>
+<p>
+users属性被增加到模块Role表示关系的以对象为目的的方法。所给出的一个Role类的场合，users属性的场合将返回与规则有关联的用户的列表。第一个自变量指向db.relationship()包含什么样的模块是关系的另一边。如果类没有被定义的话，这个模块能被用来作为一个字符串。
+</p>
+<p>
+backref自变量指向db.relationship()通过增加一个role属性到User模块，定义了关系的反向。这个属性能被用来替换role_id到Role模块入口，作为一个对象代替一个foreign key。
+</p>
+<p>
+在大多数原因中db.relationship()能把关系的foreign key设置在它自己身上，但有些时候它不能确定什么样的列用作一个foreign key。例如，如果用户模块有2个或者更多列被定义成Role foreign keys，那么SQLAlchemy不会知道用2个中的哪一个。无论什么时候foreign key配置是含糊不清的，额外的自变量指向db.relationship()需要被给出。表格5-4列出了一些常用配置选项能被用在定义一个关系上。
+</p>
+<table id="t9" class="tables">
+<caption>表格5-4. 常用SQLAlchemy关系选项</caption>
+<tr>
+	<th>Option name</th>
+	<th>Description</th>
+</tr>
+<tr>
+	<td>backref</td>
+	<td>Add a back reference in the other model in the relationship.</td>
+</tr>
+<tr>
+	<td>primaryjoin</td>
+	<td>Specify the join condition between the two models explicitly. This is necessary only for ambiguous relationships.</td>
+</tr>
+<tr>
+	<td>lazy</td>
+	<td>Specify how the related items are to be loaded. Possible values are <b>select</b> (items are loaded on demand the first time they are accessed), <b>immediate</b> (items are loaded when the source object is loaded), <b>joined</b> (items are loaded immediately, but as a join), <b>subquery</b> (items are loaded immediately, but as a subquery), <b>noload</b> (items are never loaded), and <b>dynamic</b> (instead of loading the items the query that can load them is given).</td>
+</tr>
+<tr>
+	<td>uselist</td>
+	<td>If set to <b>False</b>, use a scalar instead of a list.</td>
+</tr>
+<tr>
+	<td>order_by</td>
+	<td>Specify the ordering used for the items in the relationship.</td>
+</tr>
+<tr>
+	<td>secondary</td>
+	<td>Specify the name of the association table to use in many-to-many relationships</td>
+</tr>
+<tr>
+	<td>secondaryjoin</td>
+	<td>Specify the secondary join condition for many-to-many relationships when SQLAlchemy cannot determine it on its own.</td>
+</tr>
+</table>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经在GitHub上克隆了应用程序的Git容器，你可以运行git checkout 5a来检查应用程序的这个版本。
+</p>
+<p>
+除了one-to-many一对多，这里有其它关系类型。one-to-one一对一关系能被表达为早期一对多的表述，但在db.relationship()定义里使用uselist选项设置为False，那么many这边变成了一个one。如果表格是逆序的many-to-one关系也能被表达为一个一对多，或者它可以用foreign key和db.relationship()定义一起被表达在many那边。大多复杂的关系类型，many-to-many，需要一个额外的表格，这个额外的表格被叫做一个association table社交表格。你将在<a href="../part2/chapter12.html#">第十二章</a>学习关于多对多关系。
+</p>
+</fieldset>
+<fieldset id="f44">
+<legend>数据库操作</legend>
 <p>
 
 </p>
