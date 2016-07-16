@@ -424,7 +424,28 @@ backref自变量指向db.relationship()通过增加一个role属性到User模块
 <fieldset id="f44">
 <legend>数据库操作</legend>
 <p>
-
+模块根据图示5-1中的数据库图解现在完全被配置了并且已经准备好被使用。最好的方法来学习如何与这些模块一起工作是在一个Python shell里。接下来的部分将带你走过大部分常用数据库操作。
+</p>
+</fieldset>
+<fieldset id="f45">
+<legend>建立表格</legend>
+<p>
+第一件真正要做的事情是指示Flask-SQLAlchemy基于在模块类上去建立一个数据库。db.create_all()函数来做这件事：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ python hello.py shell
+>>> from hello import db
+>>> db.create_all()
+</textarea>
+<p>
+如果你检查应用程序目录，你现在将看到一个叫做data.sqlite新文件在那里，在配置中被给出的名字指向SQLite数据库。如果表格已经在数据库中存在的话db.create_all()函数不会重新建立或者更新一个数据库表格。当模块被修改并且改变需要被应用到一个存在的数据库时这可能不方便。暴力解决方案达到更新存在的数据库表格是先删除旧表格：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+>>> db.drop_all()
+>>> db.create_all()
+</textarea>
+<p>
+不幸的是，这种方式具有不希望有的一面，就是在旧数据库中摧毁所有数据的效果。对于更新数据库的问题一个更好的解决方案在本章快结束时被提出来。
 </p>
 </fieldset>
 </body>
