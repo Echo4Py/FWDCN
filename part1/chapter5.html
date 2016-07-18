@@ -613,6 +613,9 @@ None
 </fieldset>
 <fieldset id="f49">
 <legend>对行表示怀疑</legend>
+<p class="personal">
+query在英文翻译中有疑问、疑问号、质问名字意思，也有质问、对...表示怀疑的动词意思。这里采用直译，但理解上query是有查询数据库的操作之含义，这也不难理解，就是操作员对数据库提出疑问，数据库会给出相关答案。
+</p>
 <p>
 Flask-SQLAlchemy建立一个query对象可用在每个模块类中。关于一个模块最基本的query是返回一次相应表格的完整内容：
 </p>
@@ -629,6 +632,128 @@ Flask-SQLAlchemy建立一个query对象可用在每个模块类中。关于一�
 >>> User.query.filter_by(role=user_role).all()
 [<User u'susan'>, <User u'david'>]
 </textarea>
+<p>
+它仍然可能检查本地SQL疑问，为了一个给出的疑问SQLAlchemy是通过转化疑问对象到一个字符串生产出本地SQL疑问：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+>>> str(User.query.filter_by(role=user_role))
+'SELECT users.id AS users_id, users.username AS users_username, users.role_id AS users.role_id AS users_role_id FROM users WHERE :param_1 = users.role_id'
+</textarea>
+<p>
+如果你退出shell会话，在先前例子中所建立的对象作为Python对象将停止存在但作为行将继续分别存在于各自的数据库表格中。如果你开始一个新shell会话标记，你不得不从它们的数据行里重新建立Python对象。接下来的例子公布一个用名字"User"加载用户规则的疑问：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+>>> user_role = Role.query.filter_by(name="User").first()
+</textarea>
+<p>
+像filter_by()这样的过滤器被调用在一个疑问对象上并且返回一个新的精炼的疑问。多种多样的过滤器能被逐一调用直到因为需要疑问被配置。
+</p>
+<p>
+表格5-5展示能用在疑问上的一些最常用过滤器。完整列表是在<a href="http://docs.sqlalchemy.org/en/latest/" target=_blank>SQLAlchemy documentation</a>中。
+</p>
+<table id="t10" class="tables">
+<caption>表格5-5. 常用SQLAlchemy疑问过滤器</caption>
+<tr>
+	<th>Option</th>
+	<th>Description</th>
+</tr>
+<tr>
+	<td>fitler()</td>
+	<td>Returns a new query that adds an additional filter to the original query</td>
+</tr>
+<tr>
+	<td>filter_by()</td>
+	<td>Returns a new query that adds an additional equality filter to the original query</td>
+</tr>
+<tr>
+	<td>limit()</td>
+	<td>Returns a new query that limits the number of results of the original query to the given number</td>
+</tr>
+<tr>
+	<td>offset()</td>
+	<td>Returns a new query that applies an offset into the list of results of the original query</td>
+</tr>
+<tr>
+	<td>order_by()</td>
+	<td>Returns a new query that sorts the results of the original query according to the given criteria</td>
+</tr>
+<tr>
+	<td>group_by()</td>
+	<td>Returns a new query that groups the results of the original query according to the given criteria</td>
+</tr>
+</table>
+<p>
+在想得到的过滤器被应用到疑问之后，一个调用到all()将引起疑问执行并且返回一个列表结构，但除了all()这里有其它方法触发一个疑问的执行。表格5-6展示其它疑问执行方法。
+</p>
+<table id="t11" class="tables">
+<caption>表格5-6. 最常用的SQLAlchemy疑问执行器</caption>
+<tr>
+	<th>Option</th>
+	<th>Description</th>
+</tr>
+<tr>
+	<td>all()</td>
+	<td>Returns all the results of a query as a list</td>
+</tr>
+<tr>
+	<td>first()</td>
+	<td>Returns the first result of a query, or <b>None</b> if there are no results</td>
+</tr>
+<tr>
+	<td>first_or_404()</td>
+	<td>Returns the first result of a query, or aborts the request and sends a 404 error as response if there are no results</td>
+</tr>
+<tr>
+	<td>get()</td>
+	<td>Returns the row that matches the given primary key, or <b>None</b> if no matching row is found</td>
+</tr>
+<tr>
+	<td>get_or_404()</td>
+	<td>Returns the row that matches the given primary key. If the key is not found it aborts the request and sends 404 error as response</td>
+</tr>
+<tr>
+	<td>count()</td>
+	<td>Returns the result count of the query</td>
+</tr>
+<tr>
+	<td>paginate()</td>
+	<td>Returns a <b>Pagination</b> object that contains the specified range of results</td>
+</tr>
+</table>
+<p>
+关系工作起来与疑问是相似的。接下来的例子在规则和用户之间从两者末尾质问一对多关系：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+>>> users = user_role.users
+>>> users
+[<User u'susan'>, <User u'david'>]
+>>> users[0].role
+<Role u'User'>
+</textarea>
+<p>
+这里的user_role.users疑问有一个小问题。当user_role.users表达式被内部发表出来时，运行绝对的疑问调用all()来返回用户的列表。因为疑问对象是隐藏的，用附加的疑问过滤器精炼疑问对象是不可能的。在这个特定的例子中，请求用户列表按字母顺序命令被返回也许是有用的。在示例5-4中，关系的配置是被用一个lazy = 'dynamic'自变量修饰来请求疑问自动地不被执行。
+</p>
+<p>
+示例5-4. app/models.py：动态关系
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+class Role(db.Model):
+    # ...
+    users = db.relationship('User', backref='role', lazy='dynamic')
+    # ...
+</textarea>
+<p>
+在这个用被配置的关系方法中，user_role.users返回了一个根本没执行的疑问，所以过滤器能被增加到疑问：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+>>> user_role.users.order_by(User.username).all()
+[<User u'david'>, <User u'susan'>]
+>>> user_role.users.count()
+2
+</textarea>
+</fieldset>
+<fieldset id="f50">
+<legend>在方法函数中数据库使用</legend>
 <p>
 
 </p>
