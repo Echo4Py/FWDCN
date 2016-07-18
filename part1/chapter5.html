@@ -755,7 +755,57 @@ class Role(db.Model):
 <fieldset id="f50">
 <legend>在方法函数中数据库使用</legend>
 <p>
+在前面部分所描述的据库操作能被直接用在方法函数中。示例5-5展示一个新的主页路线版本，这个主页路线在数据库里记录了用户输入的名字。
+</p>
+<p>
+示例5-5. hello.py：数据库用在方法函数中
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    form = NmaeForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.name.data).first()
+        if user is None:
+            user = User(username = form.name.data)
+            db.session.add(user)
+            session['known'] = False
+        else:
+            session['know'] = True
+        session['name'] = form.name.data
+        form.name.data = ''
+        return redirect(url_for('index'))
+    return render_template('index.html', form = form, name = session.get('name'), known = session.get('known', False))
+</textarea>
+<p>
+在这个应用程序的修改版本里，每次一个名字被提交应用程序使用filter_by()疑问过滤器为这个名字在数据库中检查。一个known变量被写到用户会话于是重定向之后信息能被发送到模板，在那里信息被用来定制问候。注意应用程序运行，数据库表格必须在一个Python shell里被建立就像早期展示的那样。
+</p>
+<p>
+相关模板的新版本被展示在示例5-6。这个模板使用known自变量增加一个第二行到问候，那就是不同于所知道的和新用户。
+</p>
+<p>
+示例5-6. templates/index.html
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 
+{% block title %}Flasky{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Hello, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>
+    {% if not known %}
+    <p>Pleased to meet you!</p>
+    {% else %}
+    <p>Happy to see you again!</p>
+    {% endif %}
+</div>
+{{ wtf.quick_form(form) }}
+{% endblock %}
+</textarea>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经在GitHub上克隆了应用程序的Git容器，你可以运行git checkout 5b来检查应用程序的这个版本。
 </p>
 </fieldset>
 
