@@ -808,6 +808,177 @@ def index():
 <img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经在GitHub上克隆了应用程序的Git容器，你可以运行git checkout 5b来检查应用程序的这个版本。
 </p>
 </fieldset>
+<fieldset id="f51">
+<legend>用Python shell集成</legend>
+<p>
+每次一个shell会话开始必须导入数据库场合和模块是单调乏味的工作。为了避免总是不断地重复这些导入，Flask-Script的shell命令能被配置成自动导入某些对象。
+</p>
+<p>
+为了增加对象到导入列表shell命令需要用一个make_context回调函数来注册。这被展示在示例5-7中。
+</p>
+<p>示例5-7. hello.py：增加一个shell环境</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.script import Shell
+
+def make_shell_context():
+    return dict(app=app, db=db, User=User, Role=Role)
+manager.add_command("shell", Shell(make_context=make_shell_context))
+</textarea>
+<p>
+make_shell_context()函数注册了应用程序和数据库场合以及模块，所以它们自动地导入到shell中：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+$ python hello.py shell
+>>> app
+<Flask 'app>
+>>> db
+<SQLAlchemy engine='sqlite:////home/flask/flasky/data.sqlite'>
+>>> User
+<class 'app.User'>
+</textarea>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经在GitHub上克隆了应用程序的Git容器，你可以运行git checkout 5c来检查应用程序的这个版本。
+</p>
+</fieldset>
+<fieldset id="f52">
+<legend>用Flask-Migrate进行数据库迁移</legend>
+<p>
+当你做一个应用程序开发进行时，你会发现你的数据库模块需要改变，并且当那种情况发生时，数据库也需要被更新。
+</p>
+<p>
+只有当数据库表格不存在的时候，Flask-SQLAlchemy从模块建立数据库表格，所以更新表格唯一的方法是通过先摧毁旧表格，但由于这个原因所有表格中的数据会丢失。
+</p>
+<p>
+一个比较好的解决方案是使用一个database migration框架。在相同方法源代码版本中控制工具保存变化的轨迹到源代码文件，一个数据库迁移框架保存变化的轨迹到一个数据库schema，然后增量变化能被应用到数据库。
+</p>
+<p>
+SQLAlchemy的开发者主角已经写了一个迁移框架叫做<a href="http://alembic.zzzcomputing.com/en/latest/" target=_blank>Alembic</a>，但直接代替使用Alembic，Flask应用程序可以使用Flask-Migrate扩展，一个轻量级的Alembic包装集成了Flask-Script通过Flask-Script命令来提供所有操作。
+</p>
+</fieldset>
+<fieldset id="53">
+<legend>建立一个迁移容器</legend>
+<p>
+为了开始，Flask-Migrate必须在虚拟环境中被安装：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ pip install flask-migrate
+</textarea>
+<p>
+示例5-8展示了这个扩展是如何被初始化的。
+</p>
+<p>
+示例5-8. hello.py：Flask-Migrate配置
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.migrate import Migrate, MigrateCommand
+
+# ...
+
+migrate = Migrate(app, db)
+manager.add_command('db', MigrateCommand)
+</textarea>
+<p>
+为了曝光数据库迁移命令，Flask-Migrate曝光了一个MigrateCommand类，这个类被附属在Flask-Script的manager对象上。在这个示例中命令被附属在使用中的db上。
+</p>
+<p>
+在数据库迁移之前能被维护，用init子命令建立一个迁移容器是必须的：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ python hello.py db init
+  Creating directory /home/flask/flasky/migrations...done
+  Creating directory /home/flask/flasky/migrations/versions...done
+  Generating /home/flask/flasky/migrations/alembic.ini...done
+  Generating /home/flask/flasky/migrations/env.py...done
+  Generating /home/flask/flasky/migrations/env.pyc...done
+  Generating /home/flask/flasky/migrations/README...done
+  Generating /home/flask/flasky/migrations/script.py.mako...done
+  Please edit configuration/connection/logging settings in
+  '/home/flask/flasky/migrations/alembic.ini' before proceeding.
+</textarea>
+<p>
+这个命令建立一个migrations文件夹，所有迁移脚本将被存储在文件夹中。
+</p>
+<p class="personal">
+我在自己的Windows系统中执行初始化后给出的信息如下：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+Creating directory D:\flasky\migrations ... done
+Creating directory D:\flasky\migrations\versions ... done
+Generating D:\flasky\migrations\alembic.ini ... done
+Generating D:\flasky\migrations\env.py ... done
+Generating D:\flasky\migrations\README ... done
+Generating D:\flasky\migrations\script.py.mako ... done
+Please edit configuration/connection/logging settings in 'D:\\flasky\\migrations\\alembic.ini' before proceeding.
+</textarea>
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />在一个数据库迁移容器中的文件必须总被增加到版本控制随着程序的剩余部分。
+</p>
+</fieldset>
+<fieldset id="f54">
+<legend>建立一个迁移脚本</legend>
+<p>
+在Alembic里，一个数据库迁移被一个migration script表现着。这个脚本有2个函数叫做upgrade()和downgrade()。upgrade()函数应用于迁移的数据库变化这部分，downgrade()函数移除数据库变化。通过拥有增加和移除这些变化这个能力，Alembic能重新配置一个数据库到任何历史变化节点。
+</p>
+<p class="personal">
+如何实现重新配置一个数据库到任何一个历史变化节点？操作步骤是什么？我还不知道。
+</p>
+<p>
+Alembic迁移能分别地被手动建立或者自动使用revision和migrate命令来建立。一个手动迁移用空的upgrade()和downgrade()函数建立一个迁移骨架脚本，迁移骨架脚本通过开发者使用指令被执行，使用的指令通过Alembic的Operations对象来曝光。一个自动的迁移，换句话说，为upgrade()和downgrade()函数生产代码是通过查找模块定义和数据库的当前状态之间的不同。
+</p>
+<p>
+<img src="../imgs/warning.png" alt="a warning or caution" />自动地迁移不总是发生并且会丢失一些细节。迁移脚本自动地生产将总被审查。
+</p>
+<p class="personal">
+这个警告告诉我迁移数据库最好别采用自动地迁移方式，还是推荐使用手动迁移数据库方式。
+</p>
+<p>
+migrate子命令建立了一个自动地迁移脚本：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ python hello.py db migrate -m "initial migration"
+INFO [alembic.migration] Context impl SQLiteImpl.
+INFO [alembic.migration] Will assume non-transactional DDL.
+INFO [alembic.autogenerate] Detected added table 'roles'
+INFO [alembic.autogenerate] Detected added table 'users'
+INFO [alembic.autogenerate.compare] Detected added index
+'ix_users_username' on '['username']'
+  Generating /home/flask/flasky/migrations/versions/1bc
+  594146bb5_initial_migration.py...done
+</textarea>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经在GitHub上克隆了应用程序的Git容器，你可以运行git checkout 5d来检查应用程序的这个版本。注意你不需要为这个应用程序生产迁移，因为所有迁移脚本都包括在这个容器中了。
+</p>
+</fieldset>
+<fieldset id="f55">
+<legend>更新数据库</legend>
+<p>
+一旦一个迁移脚本被审查以及接受了，使用db upgrade命令，迁移脚本能被应用到数据库：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ python hello.py db upgrade
+INFO [alembic.migration] Context impl SQLiteImpl.
+INFO [alembic.migration] Will assume non-transactional DDL.
+INFO [alembic.migration] Running upgrade None -> 1bc594146bb5, initial mirgration
+</textarea>
+<p>
+对于一个第一次迁移，这样是等效于调用db.create_all()，但在成功的迁移upgrade命令中应用更新到表格对表格内容是没有作用的。
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经在GitHub上克隆了应用程序的Git容器，删除你的data.sqlite数据库文件，然后运行Flask-Migrate的upgrade命令通过迁移框架来重新生产数据库。
+</p>
+<p class="personal">
+在Windows上运行db upgrade命令后得到的信息如下：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 38c4e85512a9, initial migration
+</textarea><br />
+对比删除的旧数据库文件与新产生的数据库文件，我发现新数据库文件是一个没有内容的空数据库表格，旧数据库文件中表格内容都没有了。
+</p>
+<p>
+数据库设计和使用的话题是非常重要的；整本书在题材上已经写出。你应该考虑这章作为一个总结；更多高级话题将被在后面几章中被讨论。下一章致力于发送电子邮件。
+</p>
+</fieldset>
 
 </body>
 </html>
