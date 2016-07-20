@@ -53,8 +53,8 @@ def index():
 <p class="personal">
 instance->我发现instance这个词在我学习Flask的时候，比较准确的理解翻译为场合。在以往听过别人讲课或者其它中文翻译版本中，经常会把instance翻译成实例，在我的体会当中这样翻译无法让人能准确的明白到底是什么意思，因为instance是Flask写法中或者其它类似的语言写法中的一种规定，但并不是实际功能的代码，所以实例的说法有些牵强。但因着Flask程序中必须先写出这样的一个场合，在后续的实际代码中会被调用到这个应用场合中去执行。这么说，如果在Flask中不提前写出这样的instance的话，这里面有这样的一个隐含的意思，就是下面的实际代码就找不到该在哪里执行的意思。就像，你是一个工作人员，你的工作场合在哪里？如果你不知道，你就无法工作了。实际工作的是你这个人，并不是你工作的场合。<br />
 decorator->另外一个常常出现的一个单词decorator，有的翻译成装饰器，很难理解，但decorate除了装饰的意思还有一个是布置的意思，这样就更容易理解所谓装饰器的含义了。<br />
-route->route是路线的意思，经常被人翻译成路由这个术语，但是到底起到什么作用，当我寻求这个单词的意思时，在众多解释中，路线这个解释更能让我理解其中的作用。从这里可以看出，专业术语很容易让人对如何正确立即、或者真正的明白其含义是没有什么帮助的。
-handler->有的人叫做握手，但查询其意思的时候发现是处理的意思，那么叫做处理器更加合适。所以很多时候不求真实际上就把事实给歪曲了。
+route->route是路线的意思，经常被人翻译成路由这个术语，但是到底起到什么作用，当我寻求这个单词的意思时，在众多解释中，路线这个解释更能让我理解其中的作用。从这里可以看出，专业术语很容易让人对如何正确理解、或者真正的明白其含义是没有什么帮助的。
+handler->有的人叫做握手，但查询其意思的时候发现是处理的意思，那么叫做处理器更加合适。所以很多时候不求真实际上就会产生误解。
 </p>
 <p>
 前面的举例注册了函数index()，作为应用的根URL处理器。如果这个应用被部署在一个服务器上与www.example.com域名相结合，那么在你的浏览器上将导航到http://www.example.com，浏览器触发index()函数到服务器上运行。这个函数返回的值，被叫做响应，这个响应就是客户端收到的内容。如果客户端是一个Web浏览器，这个响应就是被显示给用户的文档了。
@@ -78,6 +78,80 @@ def user(name):
 </p>
 <p>
 在route里的动态部分默认为字符串，但也能被定义成一个类型。例如，route /user/&lt;int:id&gt;将只匹配在动态id部分中有一个整数的URL。Flask为route所支持的类型有int，float和path。path类型也是一个字符串，Flask不认为斜线/是一个分隔符，反而认为是动态成分的组成部分。
+</p>
+<p class="personal">
+<b>URL Route注册内容补充</b>
+route动态部分实际上是一种可用的转换器形式，格式是&lt;converter:name&gt;，下面的一个表格列出flask能用的转换器内容：<br />
+<table class="tables">
+<tr>
+	<th>converter</th>
+	<th>Description</th>
+</tr>
+<tr>
+	<td>string</td>
+	<td>accepts any text without a slash(the default)</td>
+</tr>
+<tr>
+	<td>int</td>
+	<td>accepts integers</td>
+</tr>
+<tr>
+	<td>float</td>
+	<td>like int but for floating point values</td>
+</tr>
+<tr>
+	<td>path</td>
+	<td>like the default but also accepts slashes</td>
+</tr>
+<tr>
+	<td>any</td>
+	<td>matches one of the items provided</td>
+</tr>
+<tr>
+	<td>uuid</td>
+	<td>accepts UUID strings</td>
+</tr>
+</table><br />
+</p>
+<p class="personal">
+本章中&lt;name&gt;的写法实际上是可以写成&lt;string:name&gt;。在练习中path的使用不能直接这样写，在网上找到了一个答案并测试成功。any和uuid如何书写我还没有找到答案，但接下来把string、int、float和path的使用代码展示如下：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return '<h1>This is a index page.</h1>'
+
+@app.route('/user/<string:name>')
+def user(name):
+    return '<h1>This is user {:s}\'s page.</h1>'.format(name)
+
+@app.route('/<string:text>')
+def str(text):
+    return '<h1>This is a or an {:s} page.</h1>'.format(text.upper()  )
+
+@app.route('/<int:id>')
+def id(id):
+    return '<h1>The number {:d} is someone id.</h1>'.format(id)
+
+@app.route('/<float:id>')
+def gps(id):
+    return '<h1>The float number {:f} is one of GPS data.</h1>'.format(id)
+
+from werkzeug.routing import PathConverter
+class EverythingConverter(PathConverter):
+    regex = '.*?'
+app.url_map.converters['everything'] = EverythingConverter
+@app.route('/search/<everything:context>')
+def path(context):
+    return '<h1>The {:s} is a path to find what you search.</h1>'.format(context.upper())
+
+if __name__ == '__main__':
+    app.run(debug=True)
+</textarea>
+
 </p>
 </fieldset>
 <fieldset id="f13">
