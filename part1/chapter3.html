@@ -25,7 +25,7 @@
 把事务和报告逻辑混合到代码是很难理解和维修的。想象一下为一个大型表格建立HTML代码通过从数据库获得的数据必须有HTML字符串文字。把报告逻辑移到模板里帮助了提高应用的维修。
 </p>
 <p>
-一个模板是一个文件，这个文件内容包含一个响应的文本，带有提供给动态部分的位置标志符变量，位置标志符变量只有在一个请求环境中将被知道。用实际变量替换这些位置标志符变量的过程以及被称作翻译的返回一个最终响应字符串。对于翻译模板的任务，Flask使用一个强大模板引擎叫做Jinja2。
+一个模板是一个文件，这个文件内容包含一个响应的文本，带有提供给动态部分的位置标志符变量，位置标志符变量只有在一个请求环境中将被知道。过程是用实际的值替换变量以及返回一个最终响应字符串，这个过程叫做rednering。对于翻译模板的任务，Flask使用一个强大模板引擎叫做Jinja2。
 </p>
 <fieldset id="f22">
 <legend>Jinja2模板引擎</legend>
@@ -78,19 +78,67 @@ Flask整合Jinja2模板引擎给应用提供了render_template函数。这个函
 <p>
 <img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经克隆了GitHub上的应用Git容器，你可以运行git checkout 3a检查这个应用版本。
 </p>
+<p class="personal">
+这里我增加了user.html内容以及增加了helloC3.py内容，做了一些操作以便观察我改变后的变化，从而我明白了Jinja2模板引擎工作的原理，文件代码展示如下：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+<h1>Hello, {{name}}!</h1>
+<h1>This is user {{name}}'s page.</h1>
+<h1>What can I do for your, {{name}}?</h1>
+</textarea><br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask import Flask, render_template
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return '<h1>This is a index page.</h1>'
+
+@app.route('/user/<name>')
+def user(name):
+    return render_template('user.html', name=name)
+
+@app.route('/users/<string:name>')
+def users(name):
+    return '<h1>This is user {:s}\'s page.</h1>'.format(name)
+
+@app.route('/<string:text>')
+def str(text):
+    return '<h1>This is a or an {:s} page.</h1>'.format(text.upper()  )
+
+@app.route('/<int:id>')
+def id(id):
+    return '<h1>The number {:d} is someone id.</h1>'.format(id)
+
+@app.route('/<float:id>')
+def gps(id):
+    return '<h1>The float number {:f} is one of GPS data.</h1>'.format(id)
+
+from werkzeug.routing import PathConverter
+class EverythingConverter(PathConverter):
+    regex = '.*?'
+app.url_map.converters['everything'] = EverythingConverter
+@app.route('/search/<everything:context>')
+def path(context):
+    return '<h1>The {:s} is a path to find what did you search.</h1>'.format(context.upper())
+
+if __name__ == '__main__':
+    app.run(debug=True)
+</textarea>
+</p>
 </fieldset>
 <fieldset id="f24">
 <legend>变量</legend>
 <p>
-显示在示例3-2中的{{name}}结构被用在模板中注明是一个变量，一个特殊的位置占位符告诉模板引擎那个值出现在的位置在那个时候将从提供的数据获得被翻译的模板。
+{{name}}结构被用在示例3-2中展示的模板里，{{name}}注明是一个变量，一个特殊的位置占位符告诉模板引擎，在模板被翻译的时候，从提供的数据中获得的那个值会进入到模板文件中{{name}}所在位置。
 </p>
 <p>
 Jinja2认识任何类型的变量，甚至复杂类型例如列表，字典和对象。接下来是一些在模板中使用的变量示例：<br />
 <textarea rows=3 cols=45 readonly="readonly" wrap="physical">
-<p>A value from a dictionary: {{ mydict['key'] }}.</p>
-<p>A value from a list: {{ mylist[3] }}.</p>
-<p>A value from a list, with a variable index: {{ mylist[myintvar] }}.</p>
-<p>A value from an object's method: {{ myobj.somemethod() }}.</p>
+A value from a dictionary: {{ mydict['key'] }}.
+A value from a list: {{ mylist[3] }}.
+A value from a list, with a variable index: {{ mylist[myintvar] }}.
+A value from an object's method: {{ myobj.somemethod() }}.
 </textarea>
 </p>
 <p>
@@ -98,6 +146,9 @@ Jinja2认识任何类型的变量，甚至复杂类型例如列表，字典和�
 <textarea rows=3 cols=45 readonly="readonly" wrap="physical">
 Hello, {{ name|capitalize }}
 </textarea>
+</p>
+<p class="personal">
+通过对模板中使用变量的练习中，我现在只在list上获得成功体验。字典失败了，还不会在模板中使用字典变量。
 </p>
 <p>
 表格3-1 列出Jinja2一些常用的过滤器。
