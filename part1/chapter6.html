@@ -1,0 +1,283 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="description" content="Flask Web Development" />
+<meta name="keywords" content="Flask, Flask Web, Flask Web Development" />
+<!--<meta name="robots" content="noindex,nofollow" />-->
+<title>Chapter6</title>
+<link type="text/css" rel="stylesheet" href="../css/forscreen.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="" media="print" />
+<link rel="stylesheet" type="text/css" href="" media="handheld" />
+</head>
+<body>
+<h1>Email</h1>
+<p>
+当某种事件发生时，应用程序的很多类型需要通知用户，通常联系的方式是email。在一个Flask应用程序里尽管从Python标准库来的smtplib包裹能被用来发送email，Flask-Mail扩展包含了smtplib并且与Flask很好地集成了smtplib。
+</p>
+<fieldset id="f56">
+<legend>用Flask-Mail做到Email支持</legend>
+<p>
+Flask-Mail用pip来安装：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ pip install flask-mail
+</textarea>
+<p>
+这个扩展连接到一个简单邮件转移协议（SMTP）服务器并且为了递送邮件这个扩展传递邮件到这个服务器。如果没有给出配置，Flask-Mail连接到位于端口25的localhost，并且没有证明情况下发送邮件。表格6-1展示了配置钥匙清单，清单内容能被用来配置SMTP服务器。
+<table id="t12" class="tables">
+<caption>表格6-1. Flask-Mail SMTP服务器配置钥匙</caption>
+<tr>
+	<th>Key</th>
+	<th>Default</th>
+	<th>Description</th>
+</tr>
+<tr>
+	<td>MAIL_HOSTNAME</td>
+	<td>localhost</td>
+	<td>Hostname or IP address of the email server</td>
+</tr>
+<tr>
+	<td>MAIL_PORT</td>
+	<td>25</td>
+	<td>Port of the email server</td>
+</tr>
+<tr>
+	<td>MAIL_USE_TLS</td>
+	<td>Fales</td>
+	<td>Enable Transport Layer Security (TLS) security</td>
+</tr>
+<tr>
+	<td>MAIL_USE_SSL</td>
+	<td>False</td>
+	<td>Enable Secure Sockets Layer(SSL) security</td>
+</tr>
+<tr>
+	<td>MAIL_USERNAME</td>
+	<td>None</td>
+	<td>Mail account username</td>
+</tr>
+<tr>
+	<td>MAIL_PASSWORD</td>
+	<td>None</td>
+	<td>Mail account password</td>
+</tr>
+</table>
+</p>
+<p>
+在开发期间连接一个外部的SMTP服务器也许更方便。作为一个例子，示例6-1展示如何配置应用程序通过一个Google Gmail账户来发送email。
+</p>
+<p>
+示例6-1. hello.py: 为Gmail提供Flask-Mail配置
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+import os
+# ...
+app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USER_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+</textarea>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />永远不要直接在你的脚本里写下账户证书，尤其如果你计划释放你的工作作为开源。为了保护你的账户信息，用你的脚本从环境中导入敏感信息。
+</p>
+<p class="personal">
+这里让我明白了，要想保护账户信息的话，我们采取的方式是导入到脚本而不是写入到脚本中。当然，在我的意识里我没有想过这样做，我觉得没有什么值得去隐藏的事情在我身上。但为了工作也许我需要掌握这样的一种技术来去满足别人的需要吧。
+</p>
+<p>
+Flask-Mail被初始化展示在示例6-2中。
+</p>
+<p>
+示例6-2. hello.py：Flask-Mail初始化
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.mail import Mail
+mail = Mail(app)
+</textarea>
+<p>
+持有email服务器用户名和密码的两个环境变量需要在环境中被定义。如果你在Linux或者Mac OS X上使用bash，你可以按照以下方法设置这些变量：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ export MAIL_USERNAME=<Gmail username>
+(venv) $ export MAIL_PASSWORD=<Gmail password>
+</textarea>
+<p>
+对于Microsoft Windows用户，环境变量用下面这样的方法来设置：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ set MAIL_USERNAME=<Gmail username>
+(venv) $ set MAIL_PASSWORD=<Gmail password>
+</textarea>
+<p class="personal">
+设置环境变量是每一次启动一个shell或者cmd时，都需要进行的一步操作，这里发现环境变量的安全性主要体现在这里。也就是当你关闭一个shell或者cmd时，环境变量就消失了，环境变量只存在于这个环境存在的时候，环境存在运行着环境变量就存在着，当环境结束了环境变量就没有了。<br />
+由于邪恶的政府使用了闭关锁国的GFW导致无法使用Gmail，只好用QQ的相关配置信息进行配置以做实验，QQ的SMTP配置信息如下：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+如果您的邮件客户端不在上述列出的范围内，您可以尝试如下通用配置：
+接收邮件服务器：imap.qq.com
+发送邮件服务器：smtp.qq.com
+账户名：您的QQ邮箱账户名（如果您是VIP邮箱，账户名需要填写完整的邮件地址）
+密码：您的QQ邮箱密码
+电子邮件地址：您的QQ邮箱的完整邮件地址
+ 
+ 
+如何设置IMAP服务的SSL加密方式？
+使用SSL的通用配置如下：
+接收邮件服务器：imap.qq.com，使用SSL，端口号993
+发送邮件服务器：smtp.qq.com，使用SSL，端口号465或587
+账户名：您的QQ邮箱账户名（如果您是VIP帐号或Foxmail帐号，账户名需要填写完整的邮件地址）
+密码：您的QQ邮箱密码
+电子邮件地址：您的QQ邮箱的完整邮件地址
+</textarea><br />
+在实际的配置操作中，上面QQ官方给出的说明中关于密码部分完全是误导了我，在我遇到的两个导致配置失败的问题内容如下：<br />
+<ul>
+<li>在Windows中使用Git bash操作时，设置环境变量要用export方式才可以成功，我以为只要是在Windows操作系统上就要用set来设置环境变量，其实不然。</li>
+<li>配置MAIL_PASSWORD时不要使用QQ邮箱登陆密码，要使用QQ邮箱开启服务中的生成授权码。生成授权码操作为：设置-账户-POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV服务-开启SMTP服务-生成授权码。
+</ul>
+</p>
+</fieldset>
+<fieldset id="f57">
+<legend>从Python Shell发送邮件</legend>
+<p>
+为了测试配置，你可以开启一个shell会话并且发送一个测试邮件：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ python hello.py shell
+>>> from flask.ext.mail import Message
+>>> from hello import mail
+>>> msg = Message('test subject', sender='you@example.com', recipients=['you@example.com'])
+>>> msg.body = 'text body'
+>>> msg.html = '<b>HTML</b> body'
+>>> with app.app_context():
+...    mail.send(msg)
+...
+</textarea>
+<p>
+注意Flask-Mail的send()函数使用了current_app，所以这个函数需要用一个被激活的应用程序环境被执行。
+</p>
+</fieldset>
+<fieldset id="f58">
+<legend>用应用程序集成电子邮件</legend>
+<p>
+为了避免每次不得不手动建立邮件消息，提取应用程序的邮件发送功能的常见部分到一个函数中是一个好主意。作为一个附加的好处，这个函数能从Jinja2模板翻译邮件主体具有很大灵活性。这个落实被展示在示例6-3中。
+</p>
+<p class="personal">
+如何集成？在上面这里有连个地方需要知道如何实现，一是什么是应用程序的邮件发送功能的常见部分？二是如何提出这部分到一个函数中去？
+</p>
+<p>
+示例6-3. hello.py：电子邮件支持
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.mail import Message
+
+app.config['FLASKY_MAIL_SUBJECT_PREFIX'] = '[Flasky]'
+app.config['FLASKY_MAIL_SENDER'] = 'Flasky Admin <flasky@example.com>'
+
+def send_email(to, subject, template, **kwargs):
+    msg = Message(app.config['FLASKY_MAIL_SUBJECT_PREFIX'] + subject, sender=app.config['FLASKY_MAIL_SENDER'], recipients=[to])
+    msg.body = render_template(template + '.txt', **kwargs)
+    msg.html = render_template(template + '.html', **kwargs)
+    mail.send(msg)
+</textarea>
+<p>
+函数依赖2个应用程序特性配置钥匙，钥匙为主题和将要用来作为发送者的地址定义一个前缀字符串。send_email函数得到了目的地地址，一个主题行，一个为了电邮主体的模板，以及一个关键字自变量列表。模板名字必须不带扩展被给出，于是2个模板的版本能被使用即简单的文本主体和富有的文本主体。关键字自变量通过来访者被传递，关键字自变量被给到render_template()调用，于是关键字自变量通过生产电邮主体的模板能被使用。
+</p>
+<p>
+index()方法函数能被简单地扩充达到发送一封电子邮件到管理员那里去，无论什么时候当一个新名字随着表单被接收时。示例6-4展示了这个变化。
+</p>
+<p>
+示例6-4. hello.py：电子邮件例子
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+# ...
+app.config['FLASKY_ADMIN'] = os.environ.get('FLASKY_ADMIN')
+# ...
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    form = NameForm()
+    if form.avlidate_on_submit():
+        user = User.query.filter_by(username=form.name.data).first()
+        if user is None:
+            user = User(username=form.name.data)
+            db.session.add(user)
+            session['known'] = False
+            if app.config['FLASKY_ADMIN']:
+                send_email(app.config['FLASKY_ADMIN'], 'New User', 'mail/new_user', user=user)
+        else:
+            session['known'] = True
+        session['name'] = form.name.data
+        form.name.data = ''
+        return redirect(url_for('index'))
+    return render_template('index.html', form=form, name=session.get('name'), known=session.get('known', False))
+</textarea>
+<p>
+启动期间在FLASKY_ADMIN环境变量中给出的电子邮件收信人加载到一个相同名字的配置变量中。两个模板文件需要被建立成email的text和HTML版本。这些文件被存储在templates里面的一个mail子文件夹里，为了保持它们与常规模板区别开来。email模板期望用户作为一个模板自变量被给出，所以调用send_email()包含作为一个关键字自变量的成分。
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经在GitHub上克隆了应用程序的Git容器，你可以运行git checkout 6a来检查应用程序的这个版本。
+</p>
+<p>
+除了前面描述的MAIL_USERNAME和MAIL_PASSWORD环境变量，应用程序的这个版本需要FLASKY_ADMIN环境变量。对于Linux和Mac OS X用户，对于开启应用程序的命令是：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ export FLASKY_ADMIN=<your-email-address>
+</textarea>
+<p>
+对于Microsoft Windows用户，等效命令是：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+(venv) $ set FLASKY_ADMIN=<Gmail username>
+</textarea>
+<p>
+用这些环境变量设置，你可以测试应用程序并且收到一封email，每次在表单中你输入一个新名字时。
+</p>
+<p class="personal">
+当按照本书代码一成不变的去试验时，当新用户提交后，就会出现一个500错误，后来把代码中一个地方改写后终于成功地自动发到指定邮箱了。代码的修改为：<br />
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+app.config['FLASKY_MAIL_SENDER'] = 'Flasky Admin <623888929@qq.com>
+</textarea><br />
+这里让我明白了，错误地方在于应用配置时没有填写实际邮件地址导致的。这里的FLASKY_MAIL_SENDER设置成MAIL_USERNAME一样的邮箱地址。
+</p>
+</fieldset>
+<fieldset id="f59">
+<legend>发送异步电子邮件</legend>
+<p>
+如果你发送少量测试邮件，你也许注意到当邮件被发送的时候mail.send()函数阻塞了几秒，在那个时候期间使得浏览器看起来没有相应。在请求处理期间为了避免不需要的延时，邮件发送函数能被移到一个背景线程。示例6-5展示了这个变化。 
+</p>
+<p class="personal">
+我没想到异步技术原来是能解决发送邮件函数导致的浏览器无响应延迟现象。从字面意思理解的话同步是更能实现发送邮件的即时性，但异步其实并不是延迟，而是把发送邮件的这个过程放到线程中去执行，这样释放了浏览器的负担，进而解决浏览器无响应延时状态的问题，从而更好的提高了用户对浏览器的使用友好流畅感受。
+</p>
+<p>
+示例6-5. hello.py：异步邮件支持
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+from threading import Thread
+
+def send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
+
+def send_email(to, subject, template, **kwargs):
+    msg = Message(app.config['FLASKY_MAIL_SUBJECT_PREFIX'] + subject, sender=app.config['FLASKY_MAIL_SENDER'], recipients=[to])
+    msg.body = render_template(template + '.txt', **kwargs)
+    msg.html = render_template(template + '.html', **kwargs)
+    thr = Thread(target=send_async_email, args=[app, msg])
+    thr.start()
+    return thr
+</textarea>
+<p>
+这个落实高亮了一个有趣的问题。很多Flask扩展操作原以为有激活的应用程序和请求环境。Flask-Mail的send()函数使用current_app，所以它需要应用程序环境达到被激活。但当mail.send()函数执行在一个不同线程里时，应用程序环境需要使用app.app_context()人工地被建立。
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经在GitHub上克隆了应用程序的Git容器，你可以运行git checkout 6b来检查应用程序的这个版本。
+</p>
+<p>
+如果你现在运行应用程序，你将注意到更具有响应，但记住对于应用程序发送大量email的容量，比起为每一封email开启一个新线程，有一项致力于发送email的工作是更加适合的。例如，send_async_email()函数的执行能被发送到一个<a href="http://www.celeryproject.org/" target=_blank>Celery</a>任务列队去。
+</p>
+<p>
+本章完成了一个为大部分web应用所必有的特性总结。现在问题是那个hello.py脚本开始变大并且使得更难一起工作了。在下一章中，你将学会如何构造一个更大的应用程序。
+</p>
+</fieldset>
+
+</body>
+</html>
