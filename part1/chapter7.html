@@ -1,0 +1,301 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="description" content="Flask Web Development" />
+<meta name="keywords" content="Flask, Flask Web, Flask Web Development" />
+<!--<meta name="robots" content="noindex,nofollow" />-->
+<title>Chapter7</title>
+<link type="text/css" rel="stylesheet" href="../css/forscreen.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="" media="print" />
+<link rel="stylesheet" type="text/css" href="" media="handheld" />
+</head>
+<body>
+<h1>大型应用程序结构</h1>
+<p>
+尽管有小型web应用程序存储在一个单一脚本中是很方便的，这样的方法分配的并不好。作为在复杂当中应用程序增长起来，与一个单独大型源文件一起工作就变得问题重重了。
+</p>
+<p>
+不像大多数其它web框架，Flask不强迫为大型项目设定一个特殊的组织结构；构造应用程序结构的方法完全留给了开发者。在本章，一个在包裹和模块中可行的组织一个大型应用程序的方法被呈现出来。这个结构将被用在本书剩余的示例中。
+</p>
+<p class="personal">
+这个结构到底是什么？我还不清楚，但是我知道必须心中有数，否则在后面的章节中就无法遵循这个结构去开发此次的应用，看来第七章是一个承上启下的环节。程序结构搞不懂那么就无法继续走下去，可以说程序开发中程序的架构是一个程序发展的瓶颈。还有一点体会，我发现Flask的设计初衷是在友善的思想下建立起来的，因为一点就可以证明，Flask在程序架构上没有强迫性，因为强迫性这种特性完全是出于Satan的，它的根源就是邪恶的。
+</p>
+<fieldset id="f60">
+<legend>项目结构</legend>
+<p>
+示例7-1展示了为一个Flask应用程序提供的基本布局。
+</p>
+<p>
+示例7-1.基础多文件Flask应用程序结构
+</p>
+<textarea rows=21 cols=45 readonly="readonly" wrap="physical">
+|-flasky
+  |-app/
+    |-templates/
+    |-static/
+    |-main/
+      |-__init__.py
+      |-errors.py
+      |-forms.py
+      |-views.py
+    |-__init__.py
+    |-email.py
+    |-models.py
+  |-migrations/
+  |-tests/
+    |-__init__.py
+    |-test*.py
+  |-venv/
+  |-requirements.txt
+  |-config.py
+  |-manage.py
+</textarea>
+<p>
+这个结构有4层文件夹：
+<ul>
+<li>Flask应用程序存在在一个归类于名叫app的包裹中。</li>
+<li>像以前一样，migrations文件夹包含数据库迁移脚本。</li>
+<li>单元测试被写在一个tests包裹里。</li>
+<li>像以前一样，venv文件夹包含Python虚拟环境。</li>
+</ul>
+</p>
+<p>
+这里也有一些新的文件：
+<ul>
+<li>requirements.txt列出了依赖包裹，所以在一个不同的电脑上很容易重新生产一个相同的虚拟环境。</li>
+<li>config.py存储了配置设置</li>
+<li>manage.py运载了应用程序和其它应用程序任务。</li>
+</ul>
+</p>
+<p>
+为了帮助你完全理解这个结构，接下来的部分描述了转化hello.py应用程序到这个结构的过程。
+</p>
+</fieldset>
+<fieldset id="f61">
+<legend>配置选项</legend>
+<p>
+应用程序经常需要一些配置设置。在开发期间，测试时，以及生产中，这个最好的示例是需要使用不同数据库，所以它们彼此之间不会妨碍。
+</p>
+<p>
+代替简单的像字典结构的配置被hello.py使用，一个配置类别的等级制度被使用。示例7-2展示了config.py文件。
+</p>
+<p>
+示例7-2. config.py：应用程序配置
+</p>
+<textarea rows=21 cols=45 readonly="readonly" wrap="physical">
+import os
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+class Config:
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
+    SQLALCHEMY_COMMIT_ON_TEARDOWN = True
+    FLASKY_MAIL_SUBJECT_PREFIX = '[Flasky]'
+    FLASKY_MAIL_SENDER = 'Flasky Admin <flasky@example.com>'
+    FLASKY_ADMIN = os.envrion.get('FLASKY_ADMIN')
+    
+    @staticmethod
+    def init_app(app):
+        pass
+        
+class DevelopmentConfig(Config):
+    DEBUG = True
+    MAIL_SERVER = 'smtp.googlemail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
+        
+class TestingConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'data-test.sqlite')
+
+class ProductionConfig(Config):
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'data.sqlite')
+
+config = {
+    'development': DevelopmentConfig,
+    'testing': TestingConfig,
+    'production': ProductionConfig,
+    
+    'default': DevelopmentConfig
+}
+</textarea>
+<p>
+Config基础类包含的设置是对于所有配置通用的；不同的子类对于一个配置定义了准确的设置。附加的配置能根据需要来增加。
+</p>
+<p>
+为了制作配置更灵活以及安全，一些设置能从环境变量中可选择地被导入。例如，SECRET_KEY的值，由于它是敏感类型，能被设置在环境中，在案例中环境没有定义它但一个默认的值会被提供。
+</p>
+<p>
+在下面3个配置中的每一个SQLALCHEMY_DATABASE_URI变量被分配了不同的值。这样可以使应用程序运行在三个不同配置下，每一个配置使用一个不同的数据库。
+</p>
+<p>
+配置类能定义一个init_app()类方法，这方法得到一个应用程序场合作为一个自变量。这里的配置明确初始化能被执行。目前基础Config类执行力一个空的init_app()方法。
+</p>
+<p>
+在配置脚本的底部，不同配置被注册在一个config字典里。众多配置中的一个（在这个案例中为开发的那一个）也是作为默认被注册了。
+</p>
+</fieldset>
+<fieldset id="f62">
+<legend>应用程序包</legend>
+<p>
+应用程序包是所有应用程序代码，模板和静态文件的所在之处。如果想的话尽管能被给出一个应用程序明确的名字，它被简单地叫做app。templates和static文件夹是应用程序包的一部分，所以这2个文件夹被移动到app里面。数据库模块和email支持功能也被移动到app这个包里面，每个它自己模块里面的也会被移动到app包面，如同app/models.py和app/email.py一样。
+</p>
+</fieldset>
+<fieldset id="f63">
+<legend>使用一个应用程序工厂</legend>
+<p>
+应用程序被建立在单独文件版本中的方法是非常方便的，但它有一个大的缺点。因为应用程序被建立在全局范围，这没有办法去动态地应用配置变化：当脚本正在运行的时候，应用程序场合已经被建立了，所以要改变配置就已经太晚了。对于单元测试来说这是尤其重要，因为有时候需要在不同配置设置下为了更好的测试范围去运行应用程序。
+</p>
+<p>
+这个问题的解决方案是延迟应用程序的建立通过把应用程序移动到一个factory function（工厂函数）里，这个工厂函数能从脚本明确地被调用。这不仅给脚本时间去设置配置，而且还有能力去建立多个应用程序场合也就是在测试期间一些也能变得非常有用。应用程序工厂函数，展示在示例7-3中，被定义在app包裹构造器里。
+</p>
+<p>
+这个构造器导入目前使用中的大部分Flask扩展，但因为这里没有应用程序场合用这些扩展来初始化，构造器通过传递无自变量到它们的构造器来建立未初始化的扩展。create_app()函数是应用程序工厂，为了应用程序它把一个配置的名字当作一个自变量来用。配置设置存储在config.py定义的类中的一个类里，使用在Flask的app.config配置对象中可用的from_object()方法，这一个类能直接地被导入到应用程序。配置对象选择根据从config字典来的名字。一旦一个应用程序被建立和被配置了，扩展就能被初始化了。在前面已经建立的扩展上调用init_app()完成那些扩展的初始化。
+</p>
+<p>
+示例7-3. app/__init__.py：应用程序包裹构造器
+</p>
+<textarea rows=21 cols=45 readonly="readonly" wrap="physical">
+from flask import Flask, render_template
+from flask.ext.bootstrap import Bootstrap
+from flask.ext.mail import Mail
+from flask.ext.moment import Moment
+from flask.ext.sqlalchemy import SQLAlchemy
+from config import config
+
+bootstrap = Bootstrap()
+mail = Mail()
+moment = Moment()
+db = SQLAlchemy()
+
+def create_app(config_name):
+    app = Flask(__name__)
+    app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
+    
+    bootstrap.init_app(app)
+    mail.init_app(app)
+    moment.init_app(app)
+    db.init_app(app)
+    
+    # attach routes and custom error pages here
+    
+    return app
+</textarea>
+<p>
+工厂函数返回建立好的应用程序场合，但注意用工厂函数建立的众多应用程序在它自己的目前状态是不完整的，因为他们缺少路线和自定义错误页面处理器。这是下一部分的话题。
+</p>
+</fieldset>
+<fieldset id="f64">
+<legend>在一个蓝图里执行应用程序功能</legend>
+<p>
+转变到一个应用程序工厂为路线介绍了一个复杂。在单个脚本应用程序中，应用程序场合存在在全局范围里，所以使用app.route装饰器路线能被容易地定义。但现在在运行时应用程序被建立，app.route装饰器开始只存在在create_app()被引用之后，现在已经太晚了。像路线，自定义错误页面处理器出现相同问题，当它们用app.errorhandler装饰器被定义的时候。
+</p>
+<p class="personal">
+这段让我明白了一个是装饰器的有效是因为先引用了create_app()后，才触发了装饰器发挥功效，这种情况只发生在单个脚本结构的应用程序里。而现在要介绍的采用大型应用程序结构时，还要用前面所采用的装饰器用法就会不起作用了，那么大型结构中该如何让装饰器继续工作呢？
+</p>
+<p>
+幸运地，Flask提供了一个更好的解决方案，使用blueprints（蓝图）。一个蓝图与一个也能定义路线的应用程序很相似。不同之处在于那些路线与一个蓝图建立了联系，这个蓝图处在一个休眠的状态，直到蓝图随着一个应用程序被注册时，在那个点路线变成蓝图的一部分。在全局范围使用一个蓝图定义，应用程序的众多路线能在大部分相同的方式里被定义，就像在单个脚本应用程序中一样。
+</p>
+<p>
+像应用程序，蓝图都能被定义在一个单独文件里或者在一个包裹里被建立在一个带有多模块的更结构化的方法中。为了允许最大灵活性，在应用程序包中的一个子包裹将被建立到主机蓝图。示例7-4展示了建立蓝图的包裹构造器。
+</p>
+<p>
+示例7-4. app/main/__init__.py：蓝图制作
+</p>
+<textarea rows=6 cols=45 readonly="readonly" wrap="physical">
+from flask import Blueprint
+
+main = Blueprint('main', __name__)
+
+from . import views, errors
+</textarea>
+<p>
+蓝图通过举一个Blueprint类的对象例子而被建立。为了这个类的构造器得到2个必备自变量：蓝图名字和模块或者蓝图所在位置的包裹。作为使用应用程序，Python的__name__变量是在大多数案例中第二个自变量的正确值。
+</p>
+<p>
+应用程序的路线被存储在包裹内部的一个app/main/views.py模块中，并且错误处理器是在app/main/errors.py里。导入这些模块是使得路线和错误处理器与蓝图建立联系的原因。注意这件事是重要的，模块在app/__init__.py脚本的底部被导入是为了避免循环的依赖，因为views.py和errors.py需要导入main蓝图。
+</p>
+<p>
+随着应用程序蓝图在create_app()工厂函数里被注册，正如示例7-5里所展示的。
+</p>
+<p>
+示例7-5. app/__init__.py：蓝图注册
+</p>
+<textarea rows=8 cols=45 readonly="readonly" wrap="physical">
+def create_app(config_name):
+    # ...
+    
+    from main import main as main_blueprint
+    app.register_blueprint(main_blueprint)
+    
+    return app
+</textarea>
+<p>
+示例7-6展示错误处理器
+</p>
+<p>
+示例7-6. app/main/errors.py：带有错误处理器的蓝图
+</p>
+<textarea rows=11 cols=45 readonly="readonly" wrap="physical">
+from flask import render_template
+from . import main
+
+@main.app_errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+    
+@main.app_errorhandler(500)
+def internal_server_error(e):
+    return render_template('500.html'), 500
+</textarea>
+<p>
+当在一个蓝图内部写错误处理器的时候一个不同之处就是，如果errorhandler装饰器被使用，处理器将只为在蓝图中发起的错误而被引用。为了安装应用程序广泛错误处理器，app_errorhandler必须被替换掉使用。
+</p>
+<p>
+示例7-7展示了应用程序的路线升级到蓝图里。
+</p>
+<p>
+示例7-7. app/main/views.py：带有应用程序路线的蓝图
+</p>
+<textarea rows=21 cols=45 readonly="readonly" wrap="physical">
+from datetime import datetime
+from flask import render_template, session, redirect, url_for
+from . import main
+from .forms import NameForm
+from .. import db
+from ..models import User
+
+@main.route('/', methods=['GET', 'POST'])
+def index():
+    form = NameForm()
+    if form.validate_on_submit():
+        # ...
+        return redirect(url_for('.index'))
+    return render_template('index.html', form=form, name=session.get('name'), known=session.get('known', False), current_time=datetime.utcnow())
+</textarea>
+<p>
+当在一个蓝图里写下一个方法函数时这里有2个主要不同之处。第一个，像早期错误处理器所做到的那样，路线装饰器是从蓝图来的。第二个不同是在url_for()函数的使用里。当你可能重新调用的时候，对于这个函数的第一个自变量是路线的名字端点，那是为了以路线为基础的应用程序默认到方法函数的名字。例如，在一个单一脚本应用程序里为一个index()方法函数提供的URL能用url_for('index')获得。
+</p>
+<p>
+使用蓝图的不同之处是Flask应用了一个名字空间到从一个蓝图来的所有端点，于是多个蓝图能用相同的端点名字没有冲突地定义方法函数。名字空间是蓝图的名字（第一个自变量到Blueprint构造器），所以index()方法函数使用名字main.index被注册并且它的URL能用url_for('main.index')获得。
+</p>
+<p>
+url_for()函数为了蓝图里的端点也支持一个在蓝图中名字被省略的更短的格式，例如url_for('.index')。用这样的记号，为了现在的请求蓝图被使用了。这事实上意思是在相同蓝图里重定向能用更短的形式，当重定向穿过蓝图时必须用名字空间端点名字。
+</p>
+<p>
+为了完成应用程序页面的变化，表单对象也存储在一个app/main/forms.py模块的蓝图内部。
+</p>
+<p class="personal">
+这部分让我明白了，单一脚本程序和大型结构程序中的路线以及错误处理器写法及引用发生了变化。程序结构由小程序结构变化到大程序结构，由于蓝图概念的引入保证了路线及错误处理器能正常运行在大程序结构中，所以写法上有了差别。
+</p>
+</fieldset>
+
+</body>
+</html>
