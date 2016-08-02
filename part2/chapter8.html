@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="description" content="Flask Web Development" />
+<meta name="keywords" content="Flask, Flask Web, Flask Web Development" />
+<!--<meta name="robots" content="noindex,nofollow" />-->
+<title>Chapter8</title>
+<link type="text/css" rel="stylesheet" href="../css/forscreen.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="" media="print" />
+<link rel="stylesheet" type="text/css" href="" media="handheld" />
+</head>
+<body>
+<h1>举例：一个社交博客应用程序</h1>
+<fieldset id="f69">
+<legend>用户鉴定</legend>
+<p>
+大多数应用程序需要保持追踪用户是谁。当用户连接应用程序时，它们用应用程序authenticate，一个通过它们使得它们的身份已知的过程。一旦应用程序知道用户是谁的时候，应用程序可以提供一个用户化的经历。
+</p>
+<p>
+大多数常用验证的方法需要用户提供一段身份证明（无论是email还是用户名）以及一个保密的密码。在本章，为了Flasky完整的验证系统被建立起来。
+</p>
+</fieldset>
+<fieldset id="f70">
+<legend>为Flask提供的鉴定扩展</legend>
+<p>
+这里有很多非常棒的Python鉴定包裹，但它们中没有一个可以完成所有的事情。用户鉴定解决方案展现在本章使用了很多包裹，并且提供了胶水使得它们很好的工作在一起。这就是将要用到的包裹的清单：
+</p>
+<ul>
+<li>Flask-Login：为登录用户提供的用户会话的管理部门</li>
+<li>Werkzeug：密码散列法以及查证</li>
+<li>itsdangerous：安全标志秘密地产生和查证</li>
+</u>
+<p>
+附加的鉴定-明确的包裹，接下来通用的扩展将被用到：
+</p>
+<ul>
+<li>Flask-Mail：鉴定关系的电子邮件的发送</li>
+<li>Flask-Bootstrap：HTML模板</li>
+<li>Flask-WTF：web表单</li>
+</ul>
+</fieldset>
+<fieldset id="f71">
+<legend>密码安全</legend>
+<p>
+在web应用程序的设计期间，用户信息的安全存储在数据库里是经常被忽视。如果一个攻击者能够闯进你的服务器和进入你的用户数据库入口，那么你承受了你的用户的安全风险，以及这个风险是比你想象的还要大。作为一个已经知道的事实，大多数用户使用相同密码在多个站点，所以甚至如果你不存储任何敏感的信息，进入存储在你的数据库里的密码能给攻击者进入你的用户在其它网站上的账户。
+</p>
+<p>
+在一个数据库里安全地存储用户密码的关键依赖于不是存储密码本身而是粗存一个密码的hash形式。一个密码散列法函数得到一个密码作为输入和关联一个或者更多的密码的转化形式到密码。结果就是一个新的字符序列，这个序列与原始密码没有相似的地方。弄乱的密码取代了真的密码被核实，因为散列法函数是可以重复的：所给出的相同输入，结果总是相同的。
+</p>
+<p class="personal">
+原来提高用户密码安全性是把一个密码的hash形式存储在数据库中。我以为只要把密码原型存储在数据就可以了。核实密码的时候实际上是用弄乱的密码来进行验证，这样就保证了真的密码不会被发现。弄乱原始密码通过一个散列法函数hashing function来实现。
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />弄乱密码是一个复杂的任务，很难得到正确的。这里建议你不要部署你自己的解决方案，相反依赖可靠的，通过社区已经被评审过的库。如果你在学习在产生安全的密码散列中调用什么的话，文章<a href="https://crackstation.net/hashing-security.htm" target=_blank>Salted Password Hashing - Doing it Right</a>是值得阅读的。
+</p>
+</fieldset>
+<fieldset id="f72">
+<legend>用Werkzeug弄乱密码</legend>
+<p>
+Werkzeug的security模块方便地部署安全的密码散列。这个功能只用两个函数就可以被暴露出来，两个函数用在注册和查证阶段，分别为：
+</p>
+<ul>
+<li>generate_password_hash(password, method=pdkdf2:sha1, salt_length=8)：</li>
+<p>这个函数得到一个简单的文本密码并且返回密码散列为一个字符串，这个字符串能被存储在用户数据库里。method和salt_length不同的值对大多数使用情况是足够的。
+</p>
+<li>check_password_hash(hash, password)：</li>
+<p>
+这个函数从数据库中得到一个被恢复的密码散列和通过用户送入的密码。一个True返回值表明密码是正确的。
+</p>
+</ul>
+<p>
+示例8-1展示在第五章里被建立的User模块的变化以达到适应密码散列。
+</p>
+<p>
+示例8-1. app/models.py：在User模块中使用密码散列
+</p>
+<textarea rows=21 cols=45 readonly="readonly" wrap="physical">
+from werkzeug.security import generate_password_hash, check_password_hash
+class User(db.Model):
+    # ...
+    password_hash = db.Column(db.String(128))
+    
+    @property
+    def password(self):
+        raise AtttributeError('password is not a readable attribute')
+        
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+        
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+</textarea>
+<p>
+密码散列函数通过一个名叫password的只写属性被部署了。当这个属性被设置时，setter方法将调用Werkzeug的generate_password_hash()函数并且把结果写到password_hash领域。尝试读取password属性将返回一个错误，一旦密码被弄乱显，作为而易见地，原始密码无法被恢复。
+</p>
+<p>
+verify_password方法得到一个密码并且把密码传递到Werkzeug的check_password_hash()函数里与存储在User模块中的散列版本相比去查证。如果这个方法返回True，那么密码是正确的。
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经克隆了GitHub上的应用程序Git容器，你可以运行git checkout 8a来检查应用程序的这个版本。
+</p>
+</fieldset>
+
+
+</body>
+</html>
