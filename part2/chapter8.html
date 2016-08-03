@@ -101,6 +101,121 @@ verify_password方法得到一个密码并且把密码传递到Werkzeug的check_
 <p>
 <img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经克隆了GitHub上的应用程序Git容器，你可以运行git checkout 8a来检查应用程序的这个版本。
 </p>
+<p>
+密码散列功能现在是完整的并且能在shell里被测试：
+</p>
+<textarea rows=21 cols=45 readonly="readonly" wrap="physical">
+(venv) $ python manage.py shell
+>>> u = User()
+>>> u.password = 'cat'
+>>> u.password_hash
+'pbkdf2:sha1:1000$duxMk0OF$4735b293e397d6eeaf650aaf490fd9091f928bed'
+>>> u.verify_password('cat')
+True
+>>> u.verify_password('dog')
+False
+>>> u2 = User()
+>>> u2.password = 'cat'
+>>> u2.password_hash
+'pbkdf2:sha1:1000$UjvnGeTP$875e28eb0874f44101d6b332442218f66975ee89'
+</textarea>
+<p>
+注意用户u和u2有完全不同的密码散列，甚至它们都使用了相同的密码。为了确保这个功能在将来继续工作，上面测试能被写作容易被重复的单元测试。在示例8-2中，一个在tests包裹里的新模块被展示出来，带着3个新测试，这3个测试练习User模块最近的变化。
+</p>
+<p>
+示例8-2. tests/test_user_model.py：密码散列测试
+</p>
+<textarea rows=21 cols=45 readonly="readonly" wrap="physical">
+import unittest
+from app.models import User
+
+class UserModelTestCase(unittest.TestCase):
+    def test_password_setter(self):
+        u = User(password = 'cat')
+        self.assertTrue(u.password_hash is not None)
+        
+    def test_no_password_getter(self):
+        u = User(password = 'cat')
+        with self.assertRaises(AttributeError):
+            u.password
+    
+    def test_password_verification(self):
+        u = User(password = 'cat')
+        self.assertTrue(u.verify_password('cat'))
+        self.assertFalse(u.verify_password('dog'))
+    
+    def test_password_salts_are_random(self):
+        u = User(password='cat')
+        u2 = User(password='cat')
+        self.assertTrue(u.password_hash != u2.password_hash)
+</textarea>
+<p class="personal">
+看完这个测试文件，我发现我有一点不明白，就是写了测试文件后怎么启动这个测试呢？我记得第七章中有一处是有关将单元测试的，所以我就回顾一下前面学的内容，<a href="../part1/chapter7.html#f67">第七章->单元测试</a>。而且启动单元测试是自动把tests文件夹里的所有测试py文件都自动运行一遍。我发现要想运行单元测试必须具备以下条件：<br />
+<ul>
+<li>首先写在tests文件夹里写一个测试py文件；</li>
+<li>第二在manage.py文件中增加启动测试文件的代码块；</li>
+<li>最后运行manage.py时以python manage.py test方式来执行单元测试工作。</li>
+</ul>
+</p>
+</fieldset>
+<fieldset id="f73">
+<legend>建立一个鉴定蓝图</legend>
+<p>
+蓝图在第七章中被介绍为在应用程序的建立被移动到一个工厂函数里之后一个在全局范围里定义路线的方法。与用户鉴定系统有着联系的路线能被增加到一个auth蓝图里。使用不同的蓝图为不同的应用程序功能的设置是一个很好的保持熟练组织代码的方法。
+</p>
+<p>
+auth蓝图将被主持在一个有着相同名字的Python包裹。blueprint的包裹构造器建立蓝图对象并且从一个views.py模块导入路线。这被展示在示例8-3中。
+</p>
+<p>
+示例8-3. app/auth/__init__.py：蓝图建立
+</p>
+<textarea rows=6 cols=45 readonly="readonly" wrap="physical">
+from flask import Blueprint
+
+auth = Blueprint('auth', __name__)
+
+from . import views
+</textarea>
+<p>
+展示在示例8-4中的app/auth/views.py模块，导入了蓝图以及使用auth的route装饰器定义了与鉴定有关系的路线。
+</p>
+<p>
+示例8-4. app/auth/views.py：蓝图路线和方法函数
+</p>
+<textarea rows=8 cols=45 readonly="readonly" wrap="physical">
+from flask import render_template
+from . import auth
+
+@auth.route('/login')
+def login():
+    return render_template('auth/login.html')
+</textarea>
+<p>
+注意给出的render_template()模板文件被存储在auth文件夹里面。这个文件夹必须被建立在app/templates中，作为Flask期望的模板被关联到应用程序的模板文件夹。通过存储蓝图模板在它们自己的文件夹里，这里没有与main蓝图或者任何其它将来被增加到这里的蓝图命名冲突的风险。
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />蓝图也能被配置到为模板而有的它们自己单独的文件夹。当多个模板文件夹已经被配置了的时候，render_template()函数首先为应用程序搜索已被配置的模板文件夹，然后搜索通过蓝图定义的模板文件夹。
+</p>
+<p>
+auth蓝图在create_app()工厂函数里需要被附加到应用程序上，作为展示在示例8-5中。
+</p>
+<p>
+示例8-5. app/__init__.py：蓝图附件
+</p>
+<textarea rows=8 cols=45 readonly="readonly" wrap="physical">
+def create_app(config_name):
+    # ...
+    from .auth import auth as auth_blueprint
+    app.register_blueprint(auth_blueprint, url_prefix='/auth')
+    
+    return app
+</textarea>
+<p>
+在蓝图注册中url_prefix自变量是可选的。当被用的时候，所有被定义在蓝图里的路线将带着给出的前缀被注册，在这种情况中/auth。例如，/login路线将被注册为/auth/login，然后完整有资格的URL在开发web服务器下于是会变成http://localhost:5000/auth/login。
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经克隆了GitHub上的应用程序Git容器，你可以运行git checkout 8b来检查应用程序的这个版本。
+</p>
 </fieldset>
 
 
