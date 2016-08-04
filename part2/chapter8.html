@@ -217,7 +217,356 @@ def create_app(config_name):
 <img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经克隆了GitHub上的应用程序Git容器，你可以运行git checkout 8b来检查应用程序的这个版本。
 </p>
 </fieldset>
+<fieldset id="f74">
+<legend>用Flask-Login实现用户鉴定</legend>
+<p>
+当用户登录应用程序的时候，它们的鉴定状态不得不被记录下来，记录了它们经过不同的页面。Flask-Login是一个小的但非常有用的扩展，这个扩展专攻管理这一个用户鉴定系统的特殊方面，没有被约束到一个准确的鉴定机制。
+</p>
+<p>
+作为一开始，扩展需要被安装在虚拟环境里：
+</p>
+<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+（venv) $ pip install flask-login
+</textarea>
+<p class="personal">
+在Windows xp系统中的git bash中安装过程展示如下：<br />
+<textarea rows=21 cols=45 readonly="readonly" wrap="physical">
+Collecting flask-login
+  Downloading Flask-Login-0.3.2.tar.gz
+Requirement already satisfied (use --upgrade to upgrade): Flask in d:\flasky\venv\lib\site-packages (from flask-login)
+Requirement already satisfied (use --upgrade to upgrade): itsdangerous>=0.21 in d:\flasky\venv\lib\site-packages (from Flask->flask-login)
+Requirement already satisfied (use --upgrade to upgrade): Jinja2>=2.4 in d:\flasky\venv\lib\site-packages (from Flask->flask-login)
+Requirement already satisfied (use --upgrade to upgrade): Werkzeug>=0.7 in d:\flasky\venv\lib\site-packages (from Flask->flask-login)
+Requirement already satisfied (use --upgrade to upgrade): MarkupSafe in d:\flasky\venv\lib\site-packages (from Jinja2>=2.4->Flask->flask-login)
+Building wheels for collected packages: flask-login
+  Running setup.py bdist_wheel for flask-login: started
+  Running setup.py bdist_wheel for flask-login: finished with status 'done'
+  Stored in directory: C:\Documents and Settings\Administrator\Local Settings\Application Data\pip\Cache\wheels\87\fe\9e\b88482e88c4cc95c91614eb13225740b4d9e21f1fbcd098b58
+Successfully built flask-login
+Installing collected packages: flask-login
+Successfully installed flask-login-0.3.2
+</textarea>
+</p>
+</fieldset>
+<fieldset id="f75">
+<legend>为登录准备的用户模块</legend>
+<p>
+为了能与应用程序的User模块一起工作，Flask-Login扩展需要少量方法被部署。所需的方法被展示在表格8-1中。
+</p>
+<table id="t13" class="tables">
+<caption>表格8-1. Flask-Login用户方法</caption>
+<tr>
+	<th>Method</th>
+	<th>Description</th>
+</tr>
+<tr>
+	<td>is_authenticated()</td>
+	<td>Must return <b>True</b> if user has login credentials or <b>False</b> otherwise.</td>
+</tr>
+<tr>
+	<td>is_active()</td>
+	<td>Must return <b>True</b> if the user is allowed to log in or <b>False</b> otherwise. A <b>False</b> return value can be used for disabled accounts.</td>
+</tr>
+<tr>
+	<td>is_anonymous()</td>
+	<td>Must always return <b>False</b> for regular users.</td>
+</tr>
+<tr>
+	<td>get_id()</td>
+	<td>Must return a unique identifier for the user, encoded as a Unicode string.</td>
+</tr>
+</table>
+<p>
+这四种方式能作为模块类里的方法被直接执行，但作为一个更容易的替代选择，Flask-Login提供了一个UserMixin类，这个类有默认的执行，这些执行为大多数情况都是适合的。升级后的User模块被展示在示例8-6中。
+</p>
+<p>
+示例8-6. app/models.py：更新User模块以达到支持用户登录
+</p>
+<textarea rows=16 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.login import UserMixin
 
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key = True)
+    email = db.Column(db.String(64), unique=True, index=True)
+    username = db.Column(db.String(64), unique=True, index=True)
+    password_hash = db.Column(db.String(128))
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+</textarea>
+<p>
+注意那一个email区域也被增加了。在这个应用程序中，用户将用email登录，因为与他们的用户名字来比较的话，用户们是比较少的可能忘掉他们的邮件地址。
+</p>
+<p>
+Flask-Login被初始化在应用程序工厂函数里，被展示在示例8-7中。
+</p>
+<p>
+示例8-7. app/__init__.py：Flask-Login初始化
+</p>
+<textarea rows=21 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.login import LoginManager
+
+login_manager = LoginManager()
+login_manager.session_protection = 'strong'
+login_manager.login_view = 'auth.login'
+
+def create_app(config_name):
+    # ...
+    login_manager.init_app(app)
+    # ...
+</textarea>
+<p>
+LoginManager对象的session_protection属性能被设置成None，'basic'，或者'strong'提供不同安全的级别防止用户会话干涉。使用'strong'设置，如果发现一个变化的话，Flask-Login将记录客户端的IP地址和浏览器代理和将要登出的用户。login_view属性为登录页面设置端点。再次访问是因为登录路线是在一个蓝图里，需要用蓝图的名字作为前缀。
+</p>
+<p>
+最后，Flask-Login需要应用程序建立一个回调函数，回调函数加载一个用户，被给出的标识符。这个函数被展示在示例8-8中。
+</p>
+<p>
+示例8-8. app/models.py：用户加载回调函数
+</p>
+<textarea rows=8 cols=45 readonly="readonly" wrap="physical">
+from . import login_manager
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+</textarea>
+<p>
+用户加载回调函数接收到一个用户标识符作为一个Unicode字符串。函数的返回值必须是有效的用户对象或者None。
+</p>
+</fieldset>
+<fieldset id="f76">
+<legend>保护路线</legend>
+<p>
+为了保护一个路线以至于只能被鉴定过的用户通过，Flask-Login提供了一个login_required装饰器。一个装饰器用法的例子在下面：
+</p>
+<textarea rows=8 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.login import login_required
+
+@app.route('/secret')
+@login_required
+def secret():
+    return 'Only authenticated users are allowed!'
+</textarea>
+<p>
+如果这个路线被一个没有鉴定的用户通过了，Flask-Login将阻止请求反而发送用户到登录页面。
+</p>
+</fieldset>
+<fieldset id="f77">
+<legend>增加一个登录表单</legend>
+<p>
+登录表单将被呈现给用户一个email地址的文本区域，一个密码区域，一个“记住我”选择框，以及一个提交按钮。Flask-WTF表单类被展示在示例8-9中。
+</p>
+<p>
+示例8-9. app/auth/forms.py：登录表单
+</p>
+<textarea rows=16 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.wtf import Form
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms.validators import Required, Email
+
+class LoginForm(Form):
+    email = StringField('Email', validators=[Required(), Length(1, 64), Email()])
+    password = PasswordField('Password', validators=[Required()])
+    remember_me = BooleanField('Keep me logged in')
+    submit = SubmitField('Log In')
+</textarea>
+<p>
+email区域获得Length()的优势和被WTForms提供的Email()有效性。PasswordField类代表一个使用了type="password"的&lt;input&gt;元素。BooleanField类代表了一个选择框。
+</p>
+<p>
+模板与被存储在auth/login.html里的登录页面常常在一起。这个模板只需要使用Flask-Bootstrap的wtf.quick_form()宏翻译表单。图示8-1展示了被web浏览器翻译过的登录表单。
+</p>
+<p>
+图示8-1. 登录表单<br />
+<img src="../imgs/figure81.png" alt="snapshot" class="figures" />
+</p>
+<p>
+在base.html模板里导航栏使用了一个Jinja2条件句来显示“登记”或“登出”链接，这些链接依赖当前用户的登录状态。这个条件句被展示在示例8-10里。
+</p>
+<p>
+示例8-10. app/templates/base.html：登记和登出导航栏链接
+</p>
+<textarea rows=12 cols=45 readonly="readonly" wrap="physical">
+<ul class="nav navbar-nav navbar-right">
+    <% if current_user.is_authenticated() %}
+    <li><a href="{{ url_for('auth.logout') }}">Sign Out</a></li>
+    {% else %}
+    <li><a href="{{ url_for('auth.login') }}">Sign In</a></li>
+    {% endif %}
+</ul>
+</textarea>
+<p>
+用在条件句里的current_user变量通过Flask-Login被定义，并且是自动地被用在方法函数和模板上。这个变量包含用户现在已登录，或者如果用户没有登录的话一个代理匿名用户对象。匿名用户对象对is_authenticated()方法的反应是False，所以这是一个方便的方法来知道此时的用户是否已经登录了。
+</p>
+</fieldset>
+<fieldset id="f78">
+<legend>让用户登记</legend>
+<p>
+login()方法函数的部署被展示在示例8-11中。
+</p>
+<p>
+示例8-11. app/auth/views.py：登记路线
+</p>
+<textarea rows=21 cols=45 readonly="readonly" wrap="physical">
+from flask import render_template, redirect, request, url_for, flash
+from flask.ext.login import login_user
+from . import auth
+from ..models import User
+from .forms import LoginForm
+
+@auth.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user is not None and user.verify_password(form.password.data):
+            login_user(user, form.remember_me.data)
+            return redirect(request.args.get('next') or url_for('main.index'))
+        flash('Invalid username or password.')
+    return render_template('auth/login.html', form=form)
+</textarea>
+<p>
+方法函数建立了一个LoginForm对象并且使用这个对象如<a href="../part1/chapter4.html#f34">第四章</a>中的简单表单一样。当请求是GET类型的时候，方法函数只翻译模板，反之显示表单。当表单被提交到一个POST请求里，Flask-WTF的validate_on_submit()函数验证表单变量，然后尝试让用户登录。
+</p>
+<p>
+为了达到让一个用户登录，函数通过加载从数据库来的用户开始使用email提供给表单。如果所给email地址是存在的一个用户，然后含着带有从表单来的密码的verify_password()方法被调用。如果密码是有效的，Flask-Login的login_user()函数带着用户登录并且一个布尔类型的可选项“记住我”也会随着表单被提交。当浏览器窗口被关闭时，这个自变量的一个False值引起用户会话终止，所以用户将不得不下次再次登录。一个True值引起一个长期cookie被设置在用户的浏览器里，并且带有用户会话能被恢复的效果。
+</p>
+<p>
+按照<a href="../part1/chapter4.html#f35">第四章</a>中讨论的Post/Redirect/Get模式，POST请求提交的登录证书随着一个重定向结束，但这里有2个URL目的地的可能。如果登录表单被呈现给用户防止没鉴定的通过一个被保护的URL，那么Flask-Login保存原始URL到next疑问字符串自变量里，从request.args字典来的变量能被通过。如果next疑问字符串自变量是无效的，反而一个指向主页的重定向就发表出来了。如果通过用户提供的email或密码是无效的，一个闪烁消息被设置，并且表单为了用户重试而重新被翻译。
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />在一个产品服务器上，登录路线必须被弄成有效的覆盖安全的HTTP，那样表单数据传送到服务器是加密的。没有安全的HTTP，在传送期间登录证书能被拦截，战胜任何努力拦截的办法是在服务器中输入安全的密码。
+</p>
+<p>
+登录模板需要被更新到翻译表单。这些变化被展示在示例8-12中。
+</p>
+<p>
+示例8-12. app/templates/auth/login.html：翻译登录表单
+</p>
+<textarea rows=16 cols=45 readonly="readonly" wrap="physical">
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Flasky - Login{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Login</h1>
+</div>
+<div class="col-md-4">
+    {{ wtf.quick_form(form) }}
+</div>
+{% endblock %}
+</textarea>
+</fieldset>
+<fieldset id="f79">
+<legend>让用户登出</legend>
+<p>
+登出路线的部署被展示在示例8-13中。
+</p>
+<p>
+示例8-13. app/auth/views.py：登出路线
+</p>
+<textarea rows=12 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.login import logout_user, login_required
+
+@auth.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.')
+    return redirect(url_for('main.index'))
+</textarea>
+<p>
+让一个用户登出，Flask-Login的logout_user()函数被调用移除以及重置用户会话。登出是与一个闪烁消息完成的，那个消息确定动作和一个指向主页的重定向。
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经克隆了GitHub上的应用程序Git容器，你可以运行git checkout 8c来检查应用程序的这个版本。这个更新包含一个数据库迁移，所以记住在你检验代码之后运行python manage.py db upgrade。为了确保你有了所有的依赖已经安装，也要运行pip install -r requirements.txt。
+</p>
+</fieldset>
+<fieldset id="f80">
+<legend>测试登入</legend>
+<p>
+为了确认登录功能正在工作，主页能被更新到问候登入的用户名字。模板部分所生产的问候被展示在示例8-14。
+</p>
+<p>
+示例8-14. app/templates/index.html：问候登录的用户
+</p>
+<textarea rows=8 cols=45 readonly="readonly" wrap="physical">
+Hello,
+{% if current_user.is_authenticated() %}
+    {{ current_user.username }}
+{% else %}
+    Stranger
+{% endif %}!
+</textarea>
+<p>
+在这个模板中current_user.is_authenticated()再一次被使用到是否决定用户是已经登入的。
+</p>
+<p>
+因为没有用户注册功能被建立，一个新的用户能从shell被注册：
+</p>
+<textarea rows=8 cols=45 readonly="readonly" wrap="physical">
+(venv) $ python manage.py shell
+>>> u = User(email='john@example.com', username='john', password='cat')
+>>> db.session.add(u)
+>>> db.session.commit()
+</textarea>
+<p>
+先前建立的用户现在能登录了。图示8-2展示了应用程序带有以登录用户的主页。
+</p>
+<p>
+图示8-2. 成功登录后的主页<br />
+<img src="../imgs/figure82.png" alt="snapshot" class="figures" />
+</p>
+</fieldset>
+<fieldset id="f81">
+<legend>新用户注册</legend>
+<p>
+当新的用户想成为应用程序的成员时，他们必须用应用程序注册，以至于他们被应用程序认识以及能登录。在登录页面里的一个链接将发送它们到一个注册页面，在注册页面那它们能输入email地址，用户名和密码。
+</p>
+</fieldset>
+<fieldset id="f82">
+<legend>增加一个用户注册表单</legend>
+<p>
+被用在注册页面的表单请求用户输入一个email地址，用户名，和密码。这个表单被展示在示例8-15中。
+</p>
+<p>
+示例8-15. app/auth/forms.py：用户注册表单
+</p>
+<textarea rows=21 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.wtf import Form
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms.validators import Required, Length, Email, Regexp, EqualTo
+from wtforms import ValidationError
+form ..models import User
+
+class RegistrationForm(Form):
+    email = StringField('Email', validators=[Required(), Length(1,64), Email()])
+    username = StringField('Username', validators=[
+        Required(), Length(1, 64), Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
+        							      'Usernames must have only letters,'
+        							      'numbers, dots or underscores')])
+    password = PasswordField('Password', validators=[
+        Required(), EqualTo('password2', message='Passwords must match.')])
+    password2 = PasswordField('Confirm password', validators=[Required()])
+    submit = SubmitField('Register')
+    
+    def validate_email(self, field):
+        if User.query.filter_by(email=field.data).first():
+            raise ValidationError('Email already registered.')
+        
+    def validate_username(self, field):
+        if User.query.filter_by(username=field.data).first():
+            raise ValidationError('Username already in use.')
+</textarea>
+<p>
+这个表单使用了从WTForms来的Regexp验证器以确保username区域包含字母，数字，下划线，和一个点。对于验证器的两个自变量跟着正规的表达式是正规的表达式标志和失败时显示的错误消息。
+</p>
+<p>
+作为一个安全的衡量，密码是输入两遍，但这个步骤使得需要验证两个密码区域有相同的内容，要想做到就用从WTForms来的另外名叫EqualTo验证器。这个验证器附在密码区域中的一个，这个密码区域带着另外给出的区域的名字作为一个自变量。
+</p>
+</fieldset>
 
 </body>
 </html>
