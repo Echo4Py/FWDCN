@@ -566,6 +566,55 @@ class RegistrationForm(Form):
 <p>
 作为一个安全的衡量，密码是输入两遍，但这个步骤使得需要验证两个密码区域有相同的内容，要想做到就用从WTForms来的另外名叫EqualTo验证器。这个验证器附在密码区域中的一个，这个密码区域带着另外给出的区域的名字作为一个自变量。
 </p>
+<p>
+这个表单也有两个自定义验证器以方法的方式被部署。当一个表单用validate_前缀后跟着一个区域的名字方式定义了一个方法，这方法被调用在任何正规的被定义的验证器后面。在这个情况里，为email和username自定义的验证器确保了给出的值不是重复的。自定义的验证器通过抛出一个带有错误信息的文本自变量的ValidationError例外表明一个验证错误。
+</p>
+<p>
+呈现这个格式的模板被叫做/templates/auth/register.html。像登录模板，这个模板也用wtf.quick_form()翻译表单。注册页面被展示在图示8-3中。
+</p>
+<p>
+图示8-3. 新用户注册表单<br />
+<img src="../imgs/figure83.png" alt="snapshot" class="figures" />
+</p>
+<p>
+注册页面需要从登录页面被链接，所以没有一个账户的用户能容易地发现注册页面。这个变化被展示在示例8-16中。
+</p>
+<p>
+示例8-16. app/templates/auth/login.html：链接到注册页面
+</p>
+<textarea rows=8 cols=45 readonly="readonly" wrap="physical">
+<p>
+    New user?
+    <a href="{{ url_for('auth.register') }}>
+        Click here to register
+    </a>
+</p>
+</textarea>
+</fieldset>
+<fieldset id="f83">
+<legend>注册新的用户</legend>
+<p>
+处理用户注册没有呈现任何大的出人意料的事情。当注册表单被提交并且验证后，一个新的用户被增加到数据库使用用户提供的信息。执行这个任务的方法函数被展示在示例8-17中。
+</p>
+<p>
+示例8-17. app/auth/views.py：用户注册路线
+</p>
+<textarea rows=21 cols=45 readonly="readonly" wrap="physical">
+@auth.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(email=form.email.data,
+                    username=form.username.data,
+                    password=form.password.data)
+        db.session.add(user)
+        flash('You can now login.')
+        return redirect(url_for('auth.login'))
+    return render_template('auth/register.html', form=form)
+</textarea>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经克隆了GitHub上的应用程序Git容器，你可以运行git checkout 8d来检查应用程序的这个版本。
+</p>
 </fieldset>
 
 </body>
