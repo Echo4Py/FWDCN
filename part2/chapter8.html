@@ -616,6 +616,94 @@ def register():
 <img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经克隆了GitHub上的应用程序Git容器，你可以运行git checkout 8d来检查应用程序的这个版本。
 </p>
 </fieldset>
+<fieldset id="f84">
+<legend>账户确认</legend>
+<p>
+对于应用程序的某些类型，在注册期间，确保提供的用户信息是有效的是重要的事情。一个常用的需要是来确保用户能被触及到通过提供email地址。
+</p>
+<p>
+验证email地址，应用程序在用户注册之后马上发送一个确认邮件给用户。新的账户最初被标记为未被确认直到email里的指令被跟随，那证明用户能被触及到。账户确认程序通常调用单击一个明确的手工制作的URL链接，这个链接包括了一个确认语言符号。
+</p>
+</fieldset>
+<fieldset id="f85">
+<legend>用itsdangerout生产确认语言符号</legend>
+<p>
+最简单的账户确认链接将是在确认email里包含一个带http://www.example.com/auth/confirm/&lt;id&gt;这样格式的URL，id所在的位置是数字形式的id指向数据库中的用户。当用户单击链接时，方法函数处理这个路线接受到用户id来确认作为一个自变量并且能容易地更新确认用户的状态。
+</p>
+<p>
+但显而易见地这不是一个安全的部署，作为任何想弄清楚确认链接的格式的用户将可以确认任意的账户，只通过在URL里发送随机数字。有个想法是用一个语言符号代替URL里的id，这个语言符号包含安全地加密后的相同信息。
+</p>
+<p>
+如果你回顾在<a href="../part1/chapter4.html#protection1">第四章</a>里在用户会议上的探讨，Flask使用了密码地已签名的cookies来保护用户会议的内容防止干涉。这些安全的cookies通过一个叫做itsdangerous包裹被签名。相同的想法能被应用到确认语言符号。
+</p>
+<p>
+接下来的是一个短的shell session，那个shell会议展示了itdangerous是如何能生产一个安全的包含一个用户id在里面的语言符号：
+</p>
+<textarea rows=18 cols=45 readonly="readonly" wrap="physical">
+(venv) $ python manage.py shell
+>>> from manage import app
+>>> from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+>>> s = Serializer(app.config['SECRET_KEY'], expires_in = 3600)
+>>> token = s.dumps({ 'confirm': 23 })
+>>> token
+'eyJhbGciOiJIUzI1NiIsImV4cCI6MTM4MTcxODU1OCwiaWF0IjoxMzgxNzE0OTU4fQ.ey ...'
+>>> data = s.loads(token)
+>>> data
+{u'confirm': 23}
+</textarea>
+<p>
+itsdangerous提供了一些语言符号生产器的类型。在它们中间，TimedJSONWebSignatureSerializer类用一个时间终止生产JSON Web签名(JWS)。这个类的构造器拿一个加密钥匙作为自变量，在一个Flask应用程序里钥匙所在的位置能被配置成SECRET_KEY。
+</p>
+<p>
+dumps()方法为给出的数据生产一个加密的签名作为一个自变量，然后序列化数据加上签名作为一个方便的语言符号字符串。expires_in自变量为了几秒内表达出的语言符号设置了一个终止时间。
+</p>
+<p>
+为了解码语言符号，序列器对象提供了一个loads()方法，这个方法把语言符号作为它自身的唯一自变量。函数核实了签名和终止时间，以及如果发现有效，函数返回原始数据。当loads()方法被给出一个无效的语言符号或者一个到期的有效的语言符号，一个不合规则被扔出。
+</p>
+<p>
+语言符号产生和确认使用这个功能能被增加到User模块。这个变化被展示在示例8-18中。
+</p>
+<p>
+示例8-18. app/models.py：用户账户批准
+</p>
+<textarea rows=30 cols=45 readonly="readonly" wrap="physical">
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from flask import current_app
+from . import db
+
+class User(UserMixin, db.Model):
+    # ...
+    confirmed = db.Column(db.Boolean, default=False)
+    
+    def generate_confirmation_token(self, expiration=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        return s.dumps({'confirm': self.id})
+        
+    def confirm(self, token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return False
+        if data.get('confirm') != self.id:
+            return False
+        self.confirmed = True
+        db.session.add(self)
+        return True
+</textarea>
+<p>
+generate_confirmation_token()方法用一个默认有效的一小时的时间生产一个语言符号。confirm()方法确认语言符号以及如果有效的话设置新的confirmed属性为True。
+</p>
+<p>
+除确认语言符号之外，confirm()检查从语言符号来的id与已登录的用户进行比对，以登录的用户被存储在current_user中。这确保了甚至如果一个恶意用户想弄清如何生产已签名的语言符号的话，他或者她无法批准其它人的账户。
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />因为一个新的列被增加到模块用来追踪每个账户的批准状态，一个新的数据库迁移需要被生产和应用。
+</p>
+<p>
+增加到User模块的2个新方法是容易地被测试在单元测试里。你可以为应用程序在GitHub容器中找到单元测试。
+</p>
+</fieldset>
 
 </body>
 </html>

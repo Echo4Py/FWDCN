@@ -339,7 +339,7 @@ methods自变量增加到app.route装饰器告诉了Flask要去注册方法函�
 <p>
 应用程序能记住从一个请求到下一个请求来的事情，通过存储它们到用户会议里，私有存储是可以被每一个连接的客户端使用的。用户会议在<a href="../part1/chapter2.html#associated">第二章</a>里被介绍，作为与请求内容有关联的变量中的一种。它叫做session并且是可以被存取的，像一个标准Python字典一样。
 </p>
-<p>
+<p id="protection1">
 <img src="../imgs/note.png" alt="a general note" />默认情况下，用户会议被存储在客户端cookies里，客户端的cookies是加密地、已签名的、使用SECRET_KEY配置过的。任何篡改cookie内容将翻译成无效签名，从而把会议遣送回家。
 </p>
 <p>
@@ -348,16 +348,16 @@ methods自变量增加到app.route装饰器告诉了Flask要去注册方法函�
 <p>
 示例4-5. hello.py：重定向与用户会议
 </p>
-<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+<textarea rows=16 cols=45 readonly="readonly" wrap="physical">
 from flask import Flask, render_template, session, redirect, url_for
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-	form = NameForm()
-	if form.validate_on_submit():
-		session['name'] = form.name.data
-		return redirect(url_for('index'))
-	return render_template('index.html'), form = form, name=session.get('name'))
+    form = NameForm()
+    if form.validate_on_submit():
+        session['name'] = form.name.data
+        return redirect(url_for('index'))
+    return render_template('index.html'), form = form, name=session.get('name'))
 </textarea>
 <p>
 在先前应用程序那个版本中，一个本地name变量被用来存储被用户送入的表单中的名字。那个变量现在被放进用户会议里作为session['name']，于是变量跨过请求被记住了。
