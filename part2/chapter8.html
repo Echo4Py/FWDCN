@@ -704,6 +704,166 @@ generate_confirmation_token()方法用一个默认有效的一小时的时间生
 增加到User模块的2个新方法是容易地被测试在单元测试里。你可以为应用程序在GitHub容器中找到单元测试。
 </p>
 </fieldset>
+<fieldset id="f86">
+<legend>发送确认邮件</legend>
+<p>
+在增加新的用户到数据库之后，目前/register路线重定向到/index。在重定向之前，这个路线是需要发送确认邮件。这个发送邮件的部分被展示在示例8-19中。
+</p>
+<p>
+示例8-19. app/auth/views.py：带有确认邮件的注册路线
+</p>
+<textarea rows=24 cols=45 readonly="readonly" wrap="physical">
+from ..email import send_email
+
+@auth.route('/register', methods = ['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        # ...
+        db.session.add(user)
+        db.session.commit()
+        token = user.generate_confirmation_token()
+        send_email(user.email, 'Confirm Your Account', 'auth/email/confirm', user=user, token=token)
+        flash('A confirmation email has been sent to you by email.')
+        return redirect(url_for('main.index'))
+    return render_template('auth/register.html', form=form)
+</textarea>
+<p>
+注意一个db.session.commit()调用不得不被增加，甚至尽管在请求的末尾应用程序自动配置数据库委托。问题是当用户被委托到数据库时新的用户得到所分配的一个id。因为为了确认语言标志id是所需的，委托不能被拖延。
+</p>
+<p>
+通过验证蓝图使用的邮件模板将被增加到文件夹templates/auth/email里面，以保持这些模板与HTML模板分隔开来。作为<a href="../part1/chapter6.html#f58">第六章</a>中所讨论的，为了每个邮件2个模板是需要的，这两个模板的主体的文本版本分别为plain-和rich-。作为一个例子，示例8-20展示了确认邮件模板的简单文本版本，并且你可以在GitHub容器里发现相等的HTML版本。
+</p>
+<p align=left>
+示例8-20. app/auth/templates/auth/email/confirm.txt：确认邮件的文本主体
+</p>
+<textarea rows=16 cols=45 readonly="readonly" wrap="physical">
+Dear {{ user.username }},
+Welcome to Flasky!
+To confirm your account please click on the following link:
+{{ url_for('auth.confirm', token=token, _external=True) }}
+Sincerely,
+The Flasky Team
+Note: replies to this email address are not monitored.
+</textarea>
+<p>
+默认，url_for()生产相关的URL，所以，例如，url_for('auth.confirm', token='abc')返回字符串'/auth/confirm/abc'。这种情况，当然，不是在一个邮件里能被发送的一个有效的URL。当URL被用在一个网页的上下文里的时候，相关的URL工作的很好，因为浏览器通过从当时的页面增加主机名字和端口数字转换URL成绝对值，但当发送一个URL通过email的时候这里没有那样的上下文环境。_external=True自变量被增加到url_for()调用来达到请求一个完整的有资格的URL，这个URL包含了方案(http://或者https://)，主机名字，以及端口。
+</p>
+<p>
+方法函数确认账户被展示在示例8-21中。
+</p>
+<p>
+示例8-21. app/auth/views.py：确认一个用户帐户
+</p>
+<textarea rows=18 cols=45 readonly="readonly" wrap="physical">
+from flask.ext.login import current_user
+
+@auth.route('/confirm/<token>')
+@login_required
+def confirm(token):
+    if current_user.confirmed:
+        return redirect(url_for('main.index'))
+    if current_user.confirm(token):
+        flash('You have confirmed your account. Thanks!')
+    else:
+        flash('The confirmation link is invalid or has expired.')
+    return redirect(url_for('main.index'))
+</textarea>
+<p>
+使用从Flask-Login来的login_required装饰器，这个路线是被保护的，所以当用户点击在确认邮件中的链接时，在用户们触及这个方法函数之前，用户们被要求登录。
+</p>
+<p>
+这个函数首先检查如果已登录的用户已经确认过了，并且在那种情况里函数重定向到主页，显然地这里什么事情都没有做。这种情况能防止不需要的工作，如果一个用户错误地点击确认语言标志很多次。
+</p>
+<p>
+因为实际的语言标志确认在User模块里已经完全地完成了，所有方法函数需要做的是调用confirm()方法然后根据结果闪烁一个消息。当确认成功的时候，User模块的confirmed属性被改变了并且被增加到session，当请求结束时将被委托。
+</p>
+<p>
+每个应用程序在用户确认他们的账户之间能决定什么样的未被确认的用户是被允许做些什么。一种可能性是允许未确认的用户登录，在他们获得权限之前，但只展示给他们一个页面，那页面是要求他们确认他们的账户。
+</p>
+<p>
+这个步骤使用Flask的before_request钩子能被实现，这已经被简短地描述在<a href="../part1/chapter2.html#f18">第二章</a>中。从一个蓝图来的，before_request钩子只应用到属于蓝图的请求。从一个蓝图里为所有应用程序的请求安装一个钩子，必须换成用before_app_request装饰器。示例8-22展示这个处理器是如何被部署的。
+</p>
+<p>
+示例8-22. app/auth/views.py：在before_app_request处理器中过滤未被确认的账户
+</p>
+<textarea rows=18 cols=45 readonly="readonly" wrap="physical">
+@auth.before_app_request
+def before_request():
+    if current_user.is_authenticated() \
+            and not current_user.confirmed \
+            and request.endpoint[:5] != 'auth.':
+        return redirect(url_for('auth.unconfirmed'))
+
+@auth.route('/unconfirmed')
+def unconfirmed():
+    if current_user.is_anonymous() or current_user.confirmed:
+        return redirect('main.index')
+    return render_template('auth/unconfirmed.html')
+</textarea>
+<p>
+当三个条件是真的时候，before_app_request处理器将拦截一个请求：
+</p>
+<ol>
+<li align=left>一个已登录用户（current_user.is_authenticated()必须返回<b>True</b>)。</li>
+<li>为用户提供的账户没有被确认。</li>
+<li>请求的节点（作为可进入的request.endpoint节点）超出验证蓝图的范围。验证路线的入口需要被同意，那样的路线将让用户去确认账户或者执行其它账户管理功能。</li>
+</ol>
+<p>
+如果三个条件都具备，那么一个重定向被发行到一个新的/auth/unconfirmed路线，那路线展示了一个带有关于账户确认信息的页面。
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />当一个before_request或者before_app_request回调返回了一个响应或者返回了一个重定向时，Flask发送那个到客户端没有调用与请求有关系的方法函数。当需要的时候，这个有效得允许了这些回调能拦截一个请求。
+</p>
+<p>
+被呈现到未确认的用户页面（展示在图示8-4中）只翻译了一个模板，那模板给用户们一些信息，信息内容是为了如何确认他们的账户以及提供一个链接到请求一个新的确认邮件，如果原始邮件丢失了。重新发送确认邮件的路线被展示在示例8-23中。
+</p>
+<p>
+图示8-4. 未确认的账户页面<br />
+<img src="../imgs/figure84.png" alt="snapshot" class="figures" />
+</p>
+<p>
+示例8-23. app/auth/views.py：重发账户确认邮件
+</p>
+<textarea rows=12 cols=45 readonly="readonly" wrap="physical">
+@auth.route('/confirm')
+@login_required
+def resend_confirmation():
+    token = current_user.generate_confirmation_token()
+    send_email('auth/email/confirm', 'Confirm Your Account', user, token=token)
+    flash('A new confirmation email has been sent to you by email.')
+    return redirect(url_for('main.index'))
+</textarea>
+<p>
+这个路线重复了在注册路线中使用current_user所作的，已登录的用户，作为目标用户。这个路线也是用login_required保护以确保当这个路线是可进入的时候，提出请求的用户是认识的。
+</p>
+<p>
+<img src="../imgs/tip.png" alt="a tip or suggestion" />如果你已经克隆了GitHub上的应用程序Git容器，你可以运行git checkout 8e来检查应用程序的这个版本。这个更新包含了一个数据迁移，所以记住在你检查代码之后要运行python manage.py db upgrade
+</p>
+</fieldset>
+<fieldset id="f87">
+<legend>帐户管理</legend>
+<p>
+有应用程序账户的用户也许需要不时地改变他们的账户。接下来的任务使用本章中已呈现的技术被增加到验证蓝图：
+</p>
+<ul>
+<li>密码更新</li>
+<p>
+安全意识的用户也许想定期地改变他们的密码。这是部署一个简单的特性，因为只要用户已经登录了，对于呈现一个请求旧密码然后一个新密码替换旧密码的表单是安全的。（这个特性被部署为GitHub容器中的8f委托。）
+</p>
+<li>密码重置</li>
+<p>
+当用户忘了他们的密码的时候，为了避免锁定用户无法进入应用程序，一个密码重置选项能被提供。为了以一个安全的方式来部署密码重置，使用类似语言标志那样曾经确认账户的方法是需要的。当一个用户请求一个密码重置的时候，一封带有一个重置语言标志的邮件被发送到注册邮箱地址。用户然后点击邮件中的链接，当语言标志被确认之后，一个能输入一个新密码的表单被呈现出来。（这个特性被部署为GitHub容器中的8g委托。）
+</p>
+<li>电子邮件地址变更</li>
+<p>
+改变注册邮件地址的选项被给到用户，但在新的地址被接受之前必须被带有一封确认信息的邮件确认。对于使用这个特性，用户输入新的邮件地址到一个表单里。达到确认邮件地址，一个语言标志被发送到新邮件地址。当服务器收到语言标志返回时，服务器能更新用户对象。当服务器等待接收语言标志的时候，服务器能保存新的email地址到一个新的数据库区域保留待定的email地址，或者服务器能随着id存储地址到语言标志里。（这个特性被部署为GitHub容器中的8h委托。）
+</p>
+</ul>
+<p>
+下一章中，Flasky的用户子系统将被延伸到用户规则的使用。
+</p>
+</fieldset>
 
 </body>
 </html>
