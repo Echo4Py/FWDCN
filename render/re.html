@@ -1,0 +1,148 @@
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="description" content="Flask Web Development" />
+<meta name="keywords" content="Flask, Flask Web, Flask Web Development" />
+<!--<meta name="robots" content="noindex,nofollow" />-->
+<title>Chapter8</title>
+<link type="text/css" rel="stylesheet" href="../css/forscreen.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="" media="print" />
+<link rel="stylesheet" type="text/css" href="" media="handheld" />
+</head>
+<body>
+
+
+<fieldset id="1.3">
+<legend>1.3 re---有规律的表达</legend>
+<h1>目的：使用有条理的模式在文本中搜索和改变文本</h1>
+<h3>Python版本1.5及后续版本</h3>
+<p>
+有规律的表达是用一个有条理的语法来表达文本匹配模式。这个模式被翻译成一套指令集，这套指令集被执行时能够达到让一个字符串作为输入来产生一个匹配子集，或者修改原始版本。
+<p class="personal">这里说明re的作用有2个，一个是能够处理字符串并达到一个查询的效果，第二个是能够用来修改原来的文本内容</p>
+“有规律的表达”条件是在谈话中被经常使用到的简短的"regex"或者"regexp"。表达能包含字面上的文本匹配，重复，模式化成分，分支，和其它复杂规则。很多语法问题使用一个有规律的表达，比通过建立一个专门语法分析程序更容易解决问题。
+<p class="personal">这里告诉了我要想进行查找搜索的话，用re这种方法要比自己去写一个语法分析程序更实用，所以当你有搜索需求的话，就是用re来解决，所以学会re这个方法是很实用的。</p>
+</p>
+
+<p>
+有规律的表达是典型地被用在引用大量文本的应用程序中。
+<p class="personal">我要处理的正是大量的文本数据，所以学会re是非常有用的。以前不知道用什么方法来解决我面临的这个工作，现在有了明确的方向与目标了。</p>
+实例中，re程序被开发者常常用在文本编辑程序中用作搜索模式，包裹vi，emacs和现代的IDE。有规律的表达式也是UNIX命令行程序中完整的一部分，例如sed，grep，和awk。很多程序语言在语言语法中包含了支持有规律的表达式（Perl，Ruby，Awk，和Tcl）。其它语言，例如C，C++，和Python，通过扩展库支持有规律的表达。
+<p class="personal">这个介绍说明有规律的表达方式是多么的重要啊！</p>
+</p>
+
+<p>
+这里有很多开源有规律表达式的装置，每个分享了一个共同核心语法，但对于它们的高级特性有不同的扩展或修改。用在Python中的语法是re模块，re模块是基于Perl里面的有规律的表达式语法，带有一些Python性的明确提高。
+</p>
+<p>
+<img src="../imgs/note.png" alt="a general note" />尽管有规律的表达式的条理性定义是有限的表达了描述有条理的语言，一些通过re支持的扩展超越了描述有规律的语言。术语"regular expression"在更正常的环境中被用在这，意味着任何表达能被Python的re模块评估。
+</p>
+</fieldset>
+
+<fieldset id="1.3.1">
+<legend>1.3.1 在文本中发现规律</legend>
+<p class="personal">pattern这个词中文字典中是模式，但到底怎么理解pattern这个词，查阅了一下英文解释是a perceptual structure，perceptual是知觉的意思，那么pattern就可以理解成能被人感知到的一种结构或者说是在阅读文本时能从对方的表达中感知到一种表达规律。换句话说来理解就是，他的说话习惯是什么。</p>
+<p>
+re最常用的是在文本中寻找结构。search()函数会拿结构和文本来扫描，并且当结构被发现时返回一个Match对象。如果结构没有被发现，search()返回None。
+</p>
+<p class="personal">search()函数的作用就是帮助我来寻找我要查找的内容，如果找到了我要找到东西，它会告诉我一个信息，这个反馈信息是什么内容？暂且不知道，但如果没找到我要找到东西它会告诉我没有。</p>
+<p>
+每个Match对象包含的信息是关于匹配的本性，包括原始输入的字符串，使用到有规律的表达式，以及在原始字符串中结构所在的位置。
+</p>
+<pre>
+import re
+pattern = "this"
+text = "Does this text match the pattern?"
+match = re.search(pattern, text)
+s = match.start()
+e = match.end()
+print 'Found "%s"\nin "%s"\nfrom %d to %d ("%s")' % \
+    (match.re.pattern, match.string, s, e, text[s:e])
+</pre>
+
+<p>
+start()和end()方法给出当要查找的内容在目标里找到时，查找的内容在查找范围中的起始位置和结束位置。
+</p>
+<p class="personal">解释上面的代码，<br />第一行：就是导入re模块<br />第二行：pattern这个变量是我们要查找的内容，pattern的实际内容是this这个单词<br />第三行：text是我们要在哪里查找this这个单词，text的实际内容是=右边的字符串<br />第四行：match变量是比对的结果，实际上是通过search()函数实现了寻找功能后的结果，这里重点是search()函数的用法，search()函数里面有2个参数，第一个参数是我们要查找的内容，第二个参数是在哪里查找<br />第五行：this这个词在Does this text match the pattern?中的起始位置是什么<br />第六行：this这个词在Does this text match the pattern?中的结束位置是什么<br />第七行：把结果输出，使用了格式化表达方式，因为search()的结果都是以变量的形式存在着，所以用格式化表达方式，保证了结果输出的准确性。也就是说当变量的实际内容改变时，搜索结果会随着变量的内容而改变，但搜索结果依然是准确的。<br />为了更好的理解这段代码达到的效果，我用中文的表达方式来描述一下，那就是：我想在一句话中找找有没有this这个单词，如果找到了的话，请告诉我this这个词在什么地方。<br />那如果没找到呢？那自己做一下这个实验，测试一下没找到会显示什么结果？</p>
+<h3 class='conclusion'>小结：在此段内容中介绍了re模块的方法有.search()，通过.serach()处理后，对处理后的数据使用方法.start()和.end()来找到所查找的内容起始和结束位置。text变量可以是一个文件的内容，通过open一个文件读取出的内容指定到text变量，这样就可以实现在一个文件中寻找要查找的内容了。但match.string的效果确实整篇文章内容，如何把这个输出变成所查找的内容所在的一句完整的话呢？或者所查找的内容所在的一段话呢？我想这里需要一个判断一整句话或一整段话的一种表达式才可以。怎么来写这个判断表达式呢？
+</h3>
+</fieldset>
+
+<fieldset id="1.3.2">
+<legend>1.3.2 编写表达式</legend>
+<p>
+re包含模块等级函数，等级函数是文本字符串与有规律的表达式一起工作，但等级函数更有效的是comile编写表达式，一个程序经常使用到。compile()函数会使一个表达式字符串变成一个RegexObject。
+</p>
+<pre>
+import re
+
+#Precompile the patterns提前编写样式
+regexes = [ re.compile(p) 
+			for p in [ 'this', 'that' ]
+            ]
+text = 'Does this text match the pattern?'
+print 'Text: %r\n' % text
+for regex in regexes:
+	print 'Seeking "%s" ->' % regex.pattern,
+	if regex.search(text):
+		print 'match!'
+	else:
+		print 'no match'
+</pre>
+<p>
+模块等级函数包含一个编写表达式的缓存。然而，这个缓存的大小是有限制的，并且直接使用编写表达式避免这个缓存查询总开销。使用编写表达式的另外一个好处是当模块被加载时能通过提前编写所有表达式，编写工作切换到应用开始的时间点，当程序可能对一个用户动作做出反应的时候替换到那个点。
+</p>
+<p class="personal">
+从regex.search(text)这里我看到与1.3.1中的.search()用法不一样了，这是怎么回事？regex是什么内容？通过在IDLE里面实验发现，regex的实际内容是regexes中的一个内容，regexes的内容是[re.compile('this'), re.compile('that')]这样的一个包含2个要查找的内容的列表。regex就是这个列表中一种情况，而这个情况的类型是一个RegexObject，是个对象类型，不是字符串。我拿其中一种情况来详细说，在这里我们可以通过type(re.coompile('this'))查看这个类型，说明.compile()已经把一个字符串转化成一个对象类型了，然后通过dir(re.compile('this')来查看我们可以对re.compile('this')这个对象类型做什么操作？就可以理解regex.pattern这个的意思就是把一个对象的模式找出来，这有点像反向操作，结果找到re.compile('this')这句话要查找的内容是'this'。
+</p>
+<h3 class="conclusion">小结：这节主要讲.compile()这个函数的用法，这个函数的工作原理是，把一个字符串进行编译成一个对象类型，然后我们可以对这个对象类型进行相关操作，例如还原这个对象的原始字符串。所以compilie()的工作流程是这样的：<br />
+String->Object->String。<br />
+对这个对象能进行哪些操作可以通过dir(re.compile(String))来查阅。<br />
+其中.search()的用法与对字符串操作.search()有所不同：<br />
+因为1.3.1中是对字符串.search()所以在针对字符串的使用中.search()用法是re.search(pattern, string)需要两个参数，其中pattern参数是要查找的内容，就像是'this'；而string这个参数是在哪里查找，就像是'Does this text match the pattern?'这句话。<br />
+在1.3.2中是针对一个对象进行.search()操作，实际操作就变成RegexObject.search(string)，对一个对象类型进行.search()操作时，就只要string参数就可以了。
+</h3>
+</fieldset>
+
+<fieldset id="1.3.3">
+<legend>1.3.3 多种匹配</legend>
+<p>
+进一步来看，举例中的模式都被search()用来查询文本字符串字面里的单个内容。findall()函数返回所有输入的子集字符串来匹配其模式，并且没有相互重叠。
+</p>
+<p class="personal">这话可以这么理解，就是当你输入一大堆要查询的内容
+</p>
+<pre>
+import re
+
+text = 'abbaaabbbbaaaaa'
+pattern = 'ab'
+
+for match in re.findall(pattern, text):
+    print 'Found "%s"' % match
+</pre>
+<p>
+在输入的字符串中有2种ab的情况。
+</p>
+<p>
+finditer()返回一个迭代程序，这个迭代程序产生的Match情况代替了通过findall()返回的字符串。
+</p>
+<pre>
+import re
+
+text = 'abbaaabbbbaaaaa'
+pattern = 'ab'
+
+for match in re.finditer(pattern, text):
+    s = match.start()
+    e = match.end()
+    print 'Found "%s" at %d:%d' % (text[s:e], s, e)
+</pre>
+<p>
+这段代码例子找到相同的两个ab的发生的情况，并且Match情况展示出它们原始输入的位置。
+</p>
+<h3 class="conclusion">
+小结：本节介绍了两个函数，一个是re.findall(pattern, string)，findall()的作用是把匹配的结果都找到，就是说一段内容中如果有2种匹配的情况都会找出来，而且不会重复查询，findall()的结果是一个列表；<br />
+一个是re.finditer(pattern, string)，finditer()的结果是一个迭代器程序？这该如何理解？match相当于在这个迭代器程序中提取其中的一个内容，dir(match)这个迭代器程序里的内容发现，可以对迭代器程序内容进行的操作里竟然有re？于是我mathc.re.pattern，结果与我判断的'ab'是一个结果，这让我理解成，对迭代器程序的操作又相当于一个反向操作，或者说是一种还原操作。
+</h3>
+
+</fieldset>
+</body>

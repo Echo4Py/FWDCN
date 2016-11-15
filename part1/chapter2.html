@@ -18,12 +18,12 @@
 <fieldset id="f11">
 <legend>初始化</legend>
 <p>
-所有Flask应用必须建立一个应用场合。Web服务器为把所有从客户端收到的请求传递到这个目标的操作，使用了一个叫做Web Server Gateway Interface(WSGI)的协议。应用例子是一个Flask类的目标，经常作为下面这样被建立：<br />
+所有Flask应用必须建立一个应用场合。Web服务器为把所有从客户端收到的请求传递到这个目标的操作，使用了一个叫做Web Server Gateway Interface(WSGI)的协议。应用例子是一个Flask类的目标，经常作为下面这样被建立：
+</p>
 <textarea rows=3 cols=45 readonly="readonly" wrap="physical">
 from flask import Flask
 app = Flask(__name__)
 </textarea>
-</p>
 <p>
 唯一需要讨论的Flask类构造是主模块的名字或者应用包。对于大多数应用，Python的__name__变量是正确的值。
 </p>
@@ -40,15 +40,16 @@ app = Flask(__name__)
 客户端例如web浏览器发送请求到web服务器，依次发送请求到Flask应用场合。这个应用场合需要知道哪些代码需要为每一个URL请求运行，所以保持一个URL的映象到Python函数。在一个URL和函数之间的结合，这样结合的操作被叫做一个route。
 </p>
 <p>
-大多数在一个Flask应用中方便的方式去定义一个route，是通过app.route装饰器出现在应用场合里，这个注册布置了函数并作为一个route。接下来的例子展示了一个route是如何用作这个布置被声明的：<br />
-<textarea rows=3 cols=45 readonly="readonly" wrap="physical">
+大多数在一个Flask应用中方便的方式去定义一个route，是通过app.route装饰器出现在应用场合里，这个注册布置了函数并作为一个route。接下来的例子展示了一个route是如何使用这个装饰器被声明的：
+</p>
+<textarea rows=5 cols=45 readonly="readonly" wrap="physical">
 @app.route('/')
 def index():
     return '<h1>Hello World!</h1>'
 </textarea>
-</p>
+
 <p>
-<img src="../imgs/note.png" alt="a general note" />布置是Python语言的一个标准的特征；布置能以不同的方法来描述一个函数的行为。一个常用模式是使用装饰器来为一个事件处理注册函数功能。
+<img src="../imgs/note.png" alt="a general note" />装饰器是Python语言的一个标准的特征；装饰器能以不同的方法来描述一个函数的行为。一个常用模式是使用装饰器来为一个事件处理注册函数功能。
 </p>
 <p class="personal">
 instance->我发现instance这个词在我学习Flask的时候，比较准确的理解翻译为场合。在以往听过别人讲课或者其它中文翻译版本中，经常会把instance翻译成实例，在我的体会当中这样翻译无法让人能准确的明白到底是什么意思，因为instance是Flask写法中或者其它类似的语言写法中的一种规定，但并不是实际功能的代码，所以实例的说法有些牵强。但因着Flask程序中必须先写出这样的一个场合，在后续的实际代码中会被调用到这个应用场合中去执行。这么说，如果在Flask中不提前写出这样的instance的话，这里面有这样的一个隐含的意思，就是下面的实际代码就找不到该在哪里执行的意思。就像，你是一个工作人员，你的工作场合在哪里？如果你不知道，你就无法工作了。实际工作的是你这个人，并不是你工作的场合。<br />

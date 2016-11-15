@@ -161,7 +161,7 @@ Config基础类包含的设置是对于所有配置通用的；不同的子类�
 <p>
 示例7-3. app/__init__.py：应用程序包裹构造器
 </p>
-<textarea rows=21 cols=45 readonly="readonly" wrap="physical">
+<textarea rows=21 cols=50 readonly="readonly" wrap="physical">
 from flask import Flask, render_template
 from flask.ext.bootstrap import Bootstrap
 from flask.ext.mail import Mail
@@ -203,6 +203,9 @@ def create_app(config_name):
 <p>
 幸运地，Flask提供了一个更好的解决方案，使用blueprints（蓝图）。一个蓝图与一个也能定义路线的应用程序很相似。不同之处在于那些路线与一个蓝图建立了联系，这个蓝图处在一个休眠的状态，直到蓝图随着一个应用程序被注册时，在那个点路线变成蓝图的一部分。在全局范围使用一个蓝图定义，应用程序的众多路线能在大部分相同的方式里被定义，就像在单个脚本应用程序中一样。
 </p>
+<p class="personal">
+从上段内容中我有一个理解，那就是路线就是一个URL，路线写在哪个文件中会影响到打开不同连接所显示的内容，写错路线的话，就会出现404错误。
+</p>
 <p>
 像应用程序，蓝图都能被定义在一个单独文件里或者在一个包裹里被建立在一个带有多模块的更结构化的方法中。为了允许最大灵活性，在应用程序包中的一个子包裹将被建立到主机蓝图。示例7-4展示了建立蓝图的包裹构造器。
 </p>
@@ -221,6 +224,9 @@ from . import views, errors
 </p>
 <p>
 应用程序的路线被存储在包裹内部的一个app/main/views.py模块中，并且错误处理器是在app/main/errors.py里。导入这些模块是使得路线和错误处理器与蓝图建立联系的原因。注意这件事是重要的，模块在app/__init__.py脚本的底部被导入是为了避免循环的依赖，因为views.py和errors.py需要导入main蓝图。
+</p>
+<p class="personal">
+上2段内容是有关写__init__.py, views.py, errors.py三个文件互相建立联系的很好说明。也是如何建立蓝图以及建立蓝图后如何让路线有效的依据。
 </p>
 <p>
 随着应用程序蓝图在create_app()工厂函数里被注册，正如示例7-5里所展示的。
